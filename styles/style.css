@@ -1,5 +1,21 @@
+
+.wrapper{
+  margin: 0 auto;
+  position: relative;
+}
+
 #screen {
-  display: block;
   margin: auto;
   border: 1px solid black;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+#background {
+  margin: auto;
+  border: 1px solid black;
+  position: absolute;
+  left: 0;
+  top: 0;
 }
