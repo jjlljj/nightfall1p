@@ -1,12 +1,19 @@
+* {
+  box-sizing: border-box;
+}
 
 .wrapper{
+  display: block;
+  width: 1000px;
+  height: 700px;
+  border: 1px solid black;
   margin: 0 auto;
   position: relative;
 }
 
 #screen {
   margin: auto;
-  border: 1px solid black;
+  display: block;
   position: absolute;
   left: 0;
   top: 0;
@@ -14,8 +21,23 @@
 
 #background {
   margin: auto;
-  border: 1px solid black;
+  display: block;
   position: absolute;
   left: 0;
   top: 0;
+}
+
+.bottom {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 1000px;
+  height: 100px;
+  border: 1px solid black;
+  margin: 0 auto;
+}
+
+.bottom div {
+  width: 33.3%;
+  border: 1px solid black;
 }
