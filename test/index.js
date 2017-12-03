@@ -1,0 +1,2 @@
+require('./Player-test.js');
+

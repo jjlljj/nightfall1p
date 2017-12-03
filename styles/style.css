@@ -11,8 +11,14 @@
   position: relative;
 }
 
+#backdrop {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
 #screen {
-  margin: auto;
   display: block;
   position: absolute;
   left: 0;
@@ -20,7 +26,6 @@
 }
 
 #background {
-  margin: auto;
   display: block;
   position: absolute;
   left: 0;
