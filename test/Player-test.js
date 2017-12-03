@@ -1,11 +1,11 @@
-// const Chai = require('./chai');
-// const assert = chai.assert;
+const { assert } = require('chai')
+const Player = require('../lib/Player.js')
+// const Keyboarder = require('../lib/Keyboarder.js')
 
-// const Player = require('./Player.js');
-// const player = new Player();
+describe('', () => {
+  it('should not be dead at the start of game', () => {
+    let player = new Player('ctx', 175, 100, 'background.platforms', 'keyboarder');
 
-// describe('Player', () => {
-//   it('should not be dead at the start of game', () => {
-//     assert.equal(player.dead, false);
-//   })
-// });
+    assert.equal(player.dead, false);
+  })
+});
