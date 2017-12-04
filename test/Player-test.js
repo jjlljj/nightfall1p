@@ -236,7 +236,7 @@ describe('Player', () => {
     expect(player1.lives < beforeHitLives)
   })
 
-  it('should be alive again after a time if it has lives left', () => {
+  it('should be alive again after a time if it has lives left, otherwise dead', () => {
     expect(player1.dead).to.equal(false);
     player1.hit()
     expect(player1.dead).to.equal(true);
