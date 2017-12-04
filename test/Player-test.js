@@ -12,7 +12,7 @@ describe('Player', () => {
     keyboarder = {keyState: {87: false, 65: false, 68:false}, isDown: function isDown(keyCode) {
     return this.keyState[keyCode] === true;
   }}
-    platforms =[{x: 0, y: 150, width: 400, height: 100}]
+    platforms =[{x: 0, y: 150, width: 400, height: 100}, {x:0, y:0, width:150, height: 150}, {x:250, y:0, width:150, height: 150}]
     player1 = new Player1('ctx', 175, 100, platforms, keyboarder);
   });
 
@@ -131,6 +131,29 @@ describe('Player', () => {
     forOneSecond(player1.transport())
     expect(player1.dx > 0).to.equal(true)
     expect(player1.x > startingX).to.equal(true)
+  })
+
+  it('should detect collisions with walls', () => {
+    expect(player1.isColliding(player1.platforms)).to.equal(false);
+    player1.x = 140;
+    expect(player1.isColliding(player1.platforms)).to.equal(true);
+
+    player1.x = 260;
+    expect(player1.isColliding(player1.platforms)).to.equal(true);
+  })
+
+  it('should reverse direction upon collision', () => {
+    expect(player1.isColliding(player1.platforms)).to.equal(false);
+    player1.keyboarder.keyState['65'] = true;
+    player1.x = 152;
+    player1.move()
+    let beforeCollisionDx = player1.dx;
+
+    forOneSecond(player1.transport())
+    player1.move()
+    expect(player1.isColliding(player1.platforms)).to.equal(true);
+    expect(player1.dx === -beforeCollisionDx).to.equal(true);
+
   })
 
 
