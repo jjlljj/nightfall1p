@@ -7,6 +7,7 @@ describe('Player', () => {
   let platforms
   let keyboarder
   let player1
+
   beforeEach(function() {
     keyboarder = {keyState: {87: false, 65: false, 68:false}, isDown: function isDown(keyCode) {
     return this.keyState[keyCode] === true;
