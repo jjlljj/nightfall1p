@@ -42,7 +42,10 @@ describe('Player', () => {
     expect(player1.x > startingPositionX).to.equal(true)
   });
 
-  it('should not be subject to gravity when on a platform', () => {
+  it('should not have downward velocity when on a platform', () => {
+    expect(player1.isOnPlatform).to.equal(false)
+    expect(player1.dy > 0).to.equal(true)
+
     forOneSecond(player1.transport())
     forOneSecond(player1.transport())
     forOneSecond(player1.transport())
@@ -51,7 +54,7 @@ describe('Player', () => {
     expect(player1.dy === 0).to.equal(true)
   })
 
-  it('should be able to, but only when on a platform', () => {
+  it('should be able to jump, but only when on a platform', () => {
     expect(player1.isOnPlatform).to.equal(false);
     expect(player1.jumping).to.equal(false);
     player1.jump()
