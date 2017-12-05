@@ -39,6 +39,7 @@ describe('Arrow', () => {
     arrow.y = 200;
     arrow.platforms = platforms;
     expect(arrow.isColliding(arrow.platforms)).to.equal(true);
+
   })
 
   it('should be subject to gravity', () => {
