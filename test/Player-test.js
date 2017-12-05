@@ -49,9 +49,10 @@ describe('Player', () => {
   });
 
   it('should not have downward velocity when on a platform', () => {
+    player1.y = 140;
     expect(player1.isOnPlatform).to.equal(false)
     expect(player1.dy > 0).to.equal(true)
-
+    
     forOneSecond(player1.transport())
     forOneSecond(player1.transport())
     forOneSecond(player1.transport())
@@ -61,6 +62,7 @@ describe('Player', () => {
   })
 
   it('should be able to jump, but only when on a platform', () => {
+    player1.y = 140;
     expect(player1.isOnPlatform).to.equal(false);
     expect(player1.jumping).to.equal(false);
     player1.jump()
@@ -77,6 +79,7 @@ describe('Player', () => {
   })
 
   it('should move upwards when jumping', () => {
+    player1.y = 140;
     forOneSecond(player1.transport())
     forOneSecond(player1.transport())
     forOneSecond(player1.transport())
