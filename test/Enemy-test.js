@@ -1,12 +1,11 @@
 const { expect } = require('chai')
 const Player = require('../lib/Player.js')
-const Player1 = require('../lib/Player1.js')
 const Enemy = require('../lib/Enemy.js')
 const Arrow = require('../lib/Arrow.js')
 
 describe ('Enemy', () => {
   let platforms
-  let player1
+  let player
   let enemy
 
   beforeEach(function() {
@@ -14,7 +13,7 @@ describe ('Enemy', () => {
     return this.keyState[keyCode] === true;
   }}
     platforms = [{x: 0, y: 150, width: 400, height: 100}, {x:0, y:0, width:150, height: 150}, {x:250, y:0, width:150, height: 150}]
-    player1 = new Player1('ctx', 175, 100, platforms, keyboarder);
+    player = new Player('ctx', 175, 100, platforms, keyboarder);
     enemy = new Enemy('ctx', platforms)
   });
 
@@ -74,7 +73,7 @@ describe ('Enemy', () => {
   })
 
   it('should know when it has been hit by arrows', () => {
-    let arrows = [new Arrow(player1), new Arrow(player1)]
+    let arrows = [new Arrow(player), new Arrow(player)]
     enemy.x = 152;
     enemy.y = 106;
     arrows[1].x = 155;
