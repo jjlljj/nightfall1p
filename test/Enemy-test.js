@@ -51,7 +51,6 @@ describe ('Enemy', () => {
     forOneSecond(enemy.transport())
     forOneSecond(enemy.transport())
     forOneSecond(enemy.transport())
-    console.log(enemy.y)
 
     expect(enemy.isOnPlatform).to.equal(true)
     expect(enemy.dy === 0).to.equal(true)
