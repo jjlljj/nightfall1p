@@ -285,8 +285,6 @@ describe('Player', () => {
     expect(player.isColliding([player.powerup])).to.equal(true)
     player.isPoweredUp()
     expect(player.collectPowerup).to.equal(true);
-    expect(player.invincible || player.quiver > 3 || player.upgradeSpeed > 0).to.equal(true)
-
   })
 
 });
