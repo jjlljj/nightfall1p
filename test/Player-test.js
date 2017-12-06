@@ -1,6 +1,7 @@
 const { expect } = require('chai')
 const Player = require('../lib/Player.js')
 const Arrow = require('../lib/Arrow.js')
+const Powerup = require('../lib/Powerup.js')
 
 describe('Player', () => {
   let platforms
@@ -267,6 +268,25 @@ describe('Player', () => {
     checkAfterThreeHits()
   })
 
+  it('should be able to collect power up', () => {
+    expect(player.powerup == undefined).to.equal(true);
 
+    const powerup = new Powerup()
+    player.powerup = powerup;
+    player.powerup.x = 100;
+    player.powerup.y = 100;
+
+    player.isPoweredUp();
+    expect(player.isColliding([player.powerup])).to.equal(false)
+
+    player.powerup.x = 160;
+    player.powerup.y = 100;
+
+    expect(player.isColliding([player.powerup])).to.equal(true)
+    player.isPoweredUp()
+    expect(player.collectPowerup).to.equal(true);
+    expect(player.invincible || player.quiver > 3 || player.upgradeSpeed > 0).to.equal(true)
+
+  })
 
 });
