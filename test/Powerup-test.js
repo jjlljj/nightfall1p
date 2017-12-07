@@ -7,9 +7,7 @@ describe('Powerup', () => {
 
   it('should generate randomly in a spot on the y axis', () => {
     const powerup1 = new Powerup();
-    const powerup2 = new Powerup();
-    const powerup3 = new Powerup();
 
-    expect(powerup1.y !== powerup2.y || powerup1.y !== powerup3.y || powerup3.y !== powerup2.y).to.equal(true);
+    expect(powerup1.y === 175 || powerup1.y === 180 || powerup1.y === 620).to.equal(true);
   });
 });
