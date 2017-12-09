@@ -1,4 +1,4 @@
-const { expect } = require('chai')
+//const { expect } = require('chai')
 const Player = require('../lib/Player.js')
 const Arrow = require('../lib/Arrow.js')
 const Powerup = require('../lib/Powerup.js')
