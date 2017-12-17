@@ -2,6 +2,16 @@
   box-sizing: border-box;
 }
 
+#menu {
+  z-index: 3;
+  color: blue;
+  height: 700px;
+  width: 1000px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
 .wrapper{
   display: block;
   width: 1000px;
@@ -23,7 +33,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  z-index: 5;
+  z-index: 2;
 }
 
 #background {
