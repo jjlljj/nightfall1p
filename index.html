@@ -10,7 +10,43 @@
     <canvas id="backdrop" width="1000" height="700"></canvas>
     <canvas id="screen" width="1000" height="700"></canvas>
     <canvas id="background" width="1000" height="700"></canvas>
-    <div id="menu">Hello</div>
+    <div id="menu">
+      <h1>GAME TITLE</h1>
+      <h3>Choose your game mode:</h3>
+      <div class="position">
+        <div class="versus"><h4>versus</h4><img src="../assets/versus.png"></div>
+        <div class="coop"><h4>coop</h4><img src="../assets/coop.png"></div>
+      </div>
+    </div>
+    <div id="character-selection">
+      <h2 class="select-text">Player 1 (left side) choose your character: </h2>
+      <div class="character-class">
+        <article class="archer">
+          <h2>archer</h2>
+          <img src="../assets/archer.png">
+          <h5>weapon: arrow</h5>
+          <h5>speed: average (4)</h5>
+          <h5>trait: none yet...</h5>
+          <h5>description: bow is effective at all ranges</h5>
+        </article>
+        <article class="assassin">
+          <h2>assassin</h2>
+          <img src="../assets/ninja.png">
+          <h5>weapon: kunai</h5>
+          <h5>speed: fast (4.4)</h5>
+          <h5>trait: double jump?</h5>
+          <h5>description: throws a fan of 3 kunai effective at short range</h5>
+        </article>
+        <article class="mage">
+          <h2>mage</h2>
+          <img src="../assets/mage.png">
+          <h5>weapon: fire orb</h5>
+          <h5>speed: slow (3.7)</h5>
+          <h5>trait: hovers</h5>
+          <h5>description: fast-firing orbs especially effective at range</h5>
+        </article>
+      </div>
+    </div>
   </section>
   <script src="main.bundle.js"></script>
 </body>

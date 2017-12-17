@@ -2,14 +2,68 @@
   box-sizing: border-box;
 }
 
+h1 {
+  text-align: center;
+  font-size: 4em;
+}
+
+h2 { 
+  font-size: 2.2em;
+  text-align: center;
+}
+
+h3 {
+  text-align: center;
+  font-size: 2em;
+}
+
+h4 {
+  font-size: 2em;
+}
+
+h5 {
+  font-size: 1.3em;
+  margin: 20px;
+}
+
+/*MENU ITEMS*/
 #menu {
-  z-index: 3;
-  color: blue;
+  z-index: 4;
+  color: #C5EFF7;
   height: 700px;
   width: 1000px;
   position: absolute;
   left: 0;
   top: 0;
+  background-image: url('../assets/menu-background2.jpg');
+  background-size: cover;
+}
+
+.position {
+  display: flex;
+  margin: 0 auto;
+  margin-top: 100px;
+}
+
+.coop,
+.versus {
+  border: 1px solid white;
+  display: inline-block;
+  height: 300px;
+  width: 300px;
+  margin: auto;
+  text-align: center;
+  opacity: 0.4;
+}
+
+.versus img {
+  height: 150px;
+  width: 150px; 
+}
+
+.coop img {
+  height: 150px;
+  width: 150px;
 }
 
 .wrapper{
@@ -21,6 +75,44 @@
   position: relative;
 }
 
+/*CHARACTER SELECTION*/
+#character-selection {
+  z-index: 3;
+  color: #C5EFF7;
+  height: 700px;
+  width: 1000px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-image: url('../assets/menu-background2.jpg');
+  background-size: cover;
+}
+
+.character-class {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.archer,
+.assassin,
+.mage {
+  border: 1px solid white;
+  height: 500px;
+  width: 280px;
+  opacity: 0.6;
+}
+
+.archer img, 
+.assassin img,
+.mage img {
+  height: 70px;
+  margin: 0 auto;
+  display: block;
+}
+
+
+/*THREE CANVAS*/
 #backdrop {
   display: block;
   position: absolute;
@@ -41,4 +133,31 @@
   position: absolute;
   left: 0;
   top: 0;
+}
+
+
+/*ACTIVE STATES*/
+.versus:hover {
+  color: white;
+  opacity: 1;
+}
+
+.coop:hover {
+  color: white;
+  opacity: 1;
+}
+
+.archer:hover {
+  color: white;
+  opacity: 1;
+}
+
+.assassin:hover {
+  color: white;
+  opacity: 1;
+}
+
+.mage:hover {
+  color: white;
+  opacity: 1;
 }
