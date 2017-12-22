@@ -3,6 +3,11 @@
     src: url('https://fonts.googleapis.com/css?family=Press+Start+2P');
 }
 
+body {
+  padding-top: 20px;
+  background-color: black;
+}
+
 * {
   box-sizing: border-box;
 }
