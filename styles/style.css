@@ -1,7 +1,6 @@
-@font-face {
-    font-family: 'PressStart2P';
-    src: url('https://fonts.googleapis.com/css?family=Press+Start+2P');
-}
+@import url('//fonts.googleapis.com/css?family=Press+Start+2P')
+
+@import url(https://fonts.googleapis.com/css?family=Lobster);
 
 body {
   padding-top: 20px;
@@ -34,6 +33,10 @@ h4 {
 h5 {
   font-size: 1.3em;
   margin: 20px;
+}
+
+.game-title {
+  font-family: 'Press Start 2P';
 }
 
 /*MENU ITEMS*/
