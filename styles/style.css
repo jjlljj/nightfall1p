@@ -1,3 +1,13 @@
+@font-face {
+    font-family: 'PressStart2P';
+    src: url('https://fonts.googleapis.com/css?family=Press+Start+2P');
+}
+
+body {
+  padding-top: 20px;
+  background-color: black;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -54,6 +64,11 @@ h5 {
   margin: auto;
   text-align: center;
   opacity: 0.4;
+}
+
+.title-img {
+  width: 500px;
+  height: 160px;
 }
 
 .versus img {
