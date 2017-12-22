@@ -61,6 +61,11 @@ h5 {
   opacity: 0.4;
 }
 
+.title-img {
+  width: 500px;
+  height: 160px;
+}
+
 .versus img {
   height: 150px;
   width: 150px; 
