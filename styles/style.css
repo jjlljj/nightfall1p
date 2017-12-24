@@ -1,6 +1,5 @@
 @import url('//fonts.googleapis.com/css?family=Press+Start+2P')
-
-@import url(https://fonts.googleapis.com/css?family=Lobster);
+@import url(https://fonts.googleapis.com/css?family=Lobster)
 
 body {
   padding-top: 20px;
@@ -23,7 +22,8 @@ h2 {
 
 h3 {
   text-align: center;
-  font-size: 2em;
+  font-size: 1.4em;
+  font-family: 'Press Start 2P';
 }
 
 h4 {
@@ -124,7 +124,6 @@ h6 {
   height: 450px;
   width: 280px;
   opacity: 0.6;
-  /*margin-bottom: 30px;*/
 }
 
 .archer img, 
@@ -171,24 +170,29 @@ h6 {
 .versus:hover {
   color: white;
   opacity: 1;
+  box-shadow: 0em 0 1.5em white;
 }
 
 .coop:hover {
   color: white;
   opacity: 1;
+  box-shadow: 0em 0 1.5em white;
 }
 
 .archer:hover {
   color: white;
   opacity: 1;
+  box-shadow: 0em 0 1.3em white;
 }
 
 .assassin:hover {
   color: white;
   opacity: 1;
+  box-shadow: 0em 0 1.3em white;
 }
 
 .mage:hover {
   color: white;
   opacity: 1;
+  box-shadow: 0em 0 1.3em white;
 }
