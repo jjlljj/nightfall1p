@@ -1,13 +1,10 @@
-@import url('//fonts.googleapis.com/css?family=Press+Start+2P')
-@import url(https://fonts.googleapis.com/css?family=Lobster)
+* {
+  box-sizing: border-box;
+}
 
 body {
   padding-top: 20px;
   background-color: black;
-}
-
-* {
-  box-sizing: border-box;
 }
 
 h1 {
