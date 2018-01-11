@@ -193,3 +193,19 @@ h6 {
   opacity: 1;
   box-shadow: 0em 0 1.3em white;
 }
+
+.level-select {
+  color: white;
+  background-color: transparent;
+  height:30px;
+  width: 60px;
+}
+
+.level-select-container {
+  position: absolute;
+  right: 40px;
+  bottom: 30px;
+}
+
+
+
