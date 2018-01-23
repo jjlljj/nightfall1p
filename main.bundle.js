@@ -1251,15 +1251,15 @@
 	    this.levelConfig = {
 	      level1: {
 	        platforms: level1,
-	        src: '../assets/level1/moon-backdrop.png'
+	        src: '../assets/level1/moon-backdrop.jpg'
 	      },
 	      level2: {
 	        platforms: level2,
-	        src: '../assets/level2/lake-backdrop.png'
+	        src: '../assets/level2/lake-backdrop.jpg'
 	      },
 	      level3: {
 	        platforms: level3,
-	        src: '../assets/level3/fire-cavern.png'
+	        src: '../assets/level3/fire-cavern.jpg'
 	      }
 	    };
 	    this.backdrop.src = this.levelConfig[this.level].src;
