@@ -45,7 +45,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Game = __webpack_require__(1);
-	const Keyboarder = __webpack_require__(19);
+	const Keyboarder = __webpack_require__(22);
 	const canvas = document.getElementById('screen');
 	const canvas2 = document.getElementById('background');
 	const canvas3 = document.getElementById('backdrop');
@@ -55,7 +55,7 @@
 	const keyboarder = new Keyboarder();
 
 	function startGame() {
-	  const currentGame = new Game(mode, canvas, canvas2, canvas3, ctx, ctx2, ctx3, keyboarder, player1Character, player2Character);
+	  const currentGame = new Game(mode, canvas, canvas2, canvas3, ctx, ctx2, ctx3, keyboarder, player1Character, player2Character, level);
 
 	  mode === 'versus' ? currentGame.versus() : currentGame.coop();
 	  setTimeout(() => currentGame.gameLoop(), 450);
@@ -63,6 +63,7 @@
 
 	//menu events and variables
 	let mode;
+	let level;
 	const menu = document.querySelector('#menu');
 	const versus = document.querySelector('.versus');
 	const coop = document.querySelector('.coop');
@@ -86,13 +87,13 @@
 	const assassinSelect = document.querySelector('.assassin');
 	const mageSelect = document.querySelector('.mage');
 	const Player = __webpack_require__(2);
-	const Ninja = __webpack_require__(13);
-	const Mage = __webpack_require__(15);
+	const Ninja = __webpack_require__(15);
+	const Mage = __webpack_require__(17);
 
 	archerSelect.addEventListener('click', () => {
 	  if (!player1Character) {
 	    player1Character = Player;
-	    selectText.innerHTML = 'Player 2 (right side) choose your character:';
+	    selectText.innerHTML = 'Player 2 (right side):';
 	  } else {
 	    player2Character = Player;
 	    characterSelection.style.zIndex = -1;
@@ -103,7 +104,7 @@
 	assassinSelect.addEventListener('click', () => {
 	  if (!player1Character) {
 	    player1Character = Ninja;
-	    selectText.innerHTML = 'Player 2 (right side) choose your character:';
+	    selectText.innerHTML = 'Player 2 (right side):';
 	  } else {
 	    player2Character = Ninja;
 	    characterSelection.style.zIndex = -1;
@@ -114,12 +115,30 @@
 	mageSelect.addEventListener('click', () => {
 	  if (!player1Character) {
 	    player1Character = Mage;
-	    selectText.innerHTML = 'Player 2 (right side) choose your character:';
+	    selectText.innerHTML = 'Player 2 (right side):';
 	  } else {
 	    player2Character = Mage;
 	    characterSelection.style.zIndex = -1;
+	    characterSelection.style.zIndex = -1;
 	    startGame();
 	  }
+	});
+
+	const selectLevel1 = document.querySelector('.select-level-1');
+	const selectLevel2 = document.querySelector('.select-level-2');
+	const selectLevel3 = document.querySelector('.select-level-3');
+
+	selectLevel1.addEventListener('click', () => {
+
+	  level = 'level1';
+	});
+
+	selectLevel2.addEventListener('click', () => {
+	  level = 'level2';
+	});
+
+	selectLevel3.addEventListener('click', () => {
+	  level = 'level3';
 	});
 
 /***/ }),
@@ -129,15 +148,18 @@
 	const Player = __webpack_require__(2);
 	const Enemy = __webpack_require__(5);
 	const Powerup = __webpack_require__(6);
-	const Background = __webpack_require__(7);
-	const Boss = __webpack_require__(11);
-	const Ninja = __webpack_require__(13);
-	const Mage = __webpack_require__(15);
-	const Eye = __webpack_require__(17);
-	const Clock = __webpack_require__(18);
+	const Secret = __webpack_require__(7);
+	const Background = __webpack_require__(8);
+	const Boss = __webpack_require__(13);
+	const Ninja = __webpack_require__(15);
+	const Mage = __webpack_require__(17);
+	const Eye = __webpack_require__(19);
+	const Joker = __webpack_require__(20);
+	const Cerberus = __webpack_require__(21);
+	//const Clock = require('./Clock.js');
 
 	class Game {
-	  constructor(mode, canvas, canvas2, canvas3, ctx, ctx2, ctx3, keyboarder, player1Character, player2Character) {
+	  constructor(mode, canvas, canvas2, canvas3, ctx, ctx2, ctx3, keyboarder, player1Character, player2Character, level) {
 	    this.mode = mode;
 	    this.canvas = canvas;
 	    this.canvas2 = canvas2;
@@ -147,15 +169,19 @@
 	    this.ctx3 = ctx3;
 
 	    this.keyboarder = keyboarder;
-	    this.clock = new Clock();
+	    //this.clock = new Clock();
 	    this.background = new Background(this.ctx2, this.ctx3, 'level1');
-	    this.level;
+	    this.level = level || 'level1';
 
 	    this.player1 = new player1Character(this.ctx, 175, 100, this.background.platforms, this.keyboarder, 'player1');
 	    this.player2 = new player2Character(this.ctx, 785, 100, this.background.platforms, this.keyboarder, 'player2');
 	    this.player1Character = player1Character;
 	    this.player2Character = player2Character;
 	    this.boss = new Boss(this.ctx, this.background.platforms, this.player1, this.player2);
+	    this.joker = new Joker(500, 350, this.ctx, this.player1, this.player2);
+	    this.canSpawnJoker = true;
+	    this.jokerRespawnTime = 2500;
+	    this.cerberus;
 
 	    this.canPowerup = true;
 	    this.powerupInterval = Math.random() * 7000 + 2000;
@@ -170,53 +196,73 @@
 	    this.randomX;
 	    this.randomY;
 	    this.paused = true;
-	    this.frame = 0;
+	    this.monsterKillCount = 0;
+	    this.secret;
+	    this.secretCollected = 0;
 	  }
 
 	  gameLoop() {
-	    console.log(this.enemies.length);
-
 	    const vsCondition = this.player1.lives > 0 && this.player2.lives > 0 && !this.keyboarder.isDown(32) && this.mode === 'versus';
 	    const coopCondition = (this.player1.lives > 0 || this.player2.lives > 0) && !this.keyboarder.isDown(32) && this.mode === 'coop';
-	    const coopVictoryCondition = this.boss.lives === 0;
+	    const coopVictoryLevel1 = this.monsterKillCount >= 50 && this.level === 'level1';
+	    const coopVictoryLevel2 = this.boss.lives === 0 && this.level === 'level2';
+	    const coopVictoryLevel3 = this.secretCollected === 10 && this.level === 'level3';
+
+	    const coopWin = coopVictoryLevel1 || coopVictoryLevel2 || coopVictoryLevel2;
 
 	    this.gameLoop = this.gameLoop.bind(this);
 
-	    if (vsCondition || coopCondition) {
+	    if ((vsCondition || coopCondition) && !coopWin) {
 	      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-	      this.paused = false;
 	      this.ctx.globalAlpha = 1;
 	      this.updateScreen();
-	      this.updatePowerup();
-	      if (coopVictoryCondition) {
-	        this.coopVictoryScreen();
-	        return;
-	      }
+	      this.paused = false;
 	      requestAnimationFrame(this.gameLoop);
 	    } else if ((this.player1.lives === 0 || this.player2.lives === 0) && this.mode === 'versus') {
-	      this.paused = true;
 	      this.gameOverScreen();
 	      this.keyboarder.keyState[32] = false;
 	      if (this.keyboarder.isDown(78)) {
 	        this.newGame();
+	        this.selectBackground(this.level);
+	      }
+	      requestAnimationFrame(this.gameLoop);
+	    } else if (coopWin) {
+	      this.coopVictoryScreen();
+	      this.keyboarder.keyState[32] = false;
+	      if (this.keyboarder.isDown(78)) {
+	        this.levelUp();
+	        this.newGame();
+	        this.selectBackground(this.level);
+	        this.coop();
 	      }
 	      requestAnimationFrame(this.gameLoop);
 	    } else if (this.player1.lives === 0 && this.player2.lives === 0 && this.mode === 'coop') {
-	      this.paused = true;
 	      this.coopOverScreen();
 	      this.keyboarder.keyState[32] = false;
 	      requestAnimationFrame(this.gameLoop);
 	    } else if (this.keyboarder.isDown(32)) {
-	      this.paused = true;
 	      this.displayControls();
+	      this.paused = true;
 	      requestAnimationFrame(this.gameLoop);
 	    }
 	  }
 
+	  updateScreen() {
+	    this.playerHit();
+	    this.player1.update();
+	    this.player2.update();
+	    this.transport();
+	    this.updatePowerup();
+	    this.drawPortal();
+	    this.updateEnemies();
+	    this.createEnemy();
+	    this.instructions();
+	    this.level3();
+	  }
+
 	  newGame() {
 	    this.background.platforms = [];
-	    this.level === 'level1' ? this.selectBackground('level2') : this.selectBackground('level1');
-	    this.level = this.level === 'level1' ? 'level2' : 'level1';
+	    //this.selectRandomLevel();
 	    this.player1 = new this.player1Character(this.ctx, 175, 100, this.background.platforms, this.keyboarder, 'player1');
 	    this.player2 = new this.player2Character(this.ctx, 785, 100, this.background.platforms, this.keyboarder, 'player2');
 	    this.enemies = [];
@@ -225,84 +271,115 @@
 	    this.canPowerup = true;
 	  }
 
-	  updateScreen() {
-	    this.allArrows = this.player1.arrows.concat(this.player2.arrows).concat(this.boss.arrows);
-
-	    if ((this.player1.isColliding(this.allArrows) || this.player1.isColliding(this.enemies)) && !this.player1.invincible) {
-	      this.filterCollidingArrows([this.player1]);
-	      this.player1.hit();
-	      this.player1.upgradeSpeed = 0;
-	      this.player1.upgradeQuiver = 0;
-	      this.player1.quiver = 3;
-	    }
-	    if ((this.player2.isColliding(this.allArrows) || this.player2.isColliding(this.enemies)) && !this.player2.invincible) {
-	      this.filterCollidingArrows([this.player2]);
-	      this.player2.hit();
-	      this.player2.upgradeSpeed = 0;
-	      this.player2.upgradeQuiver = 0;
-	      this.player2.quiver = 3;
-	    }
-	    this.player1.update();
-	    this.player2.update();
-
-	    this.drawPortal();
-	    this.updateEnemies();
-	    this.instructions();
-	  }
-
 	  selectBackground(level) {
 	    this.ctx2.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	    this.ctx3.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	    this.background.changeBackground(level);
 	    this.background.createBackground();
-	    setTimeout(() => this.background.drawBackground(), 200);
+	    setTimeout(() => this.background.drawBackground(), 400);
+	  }
+
+	  levelUp() {
+	    const levelArray = ['level1', 'level2', 'level3'];
+	    let idx = levelArray.indexOf(this.level);
+	    if (idx < 2) idx++;
+	    this.level = levelArray[idx];
 	  }
 
 	  versus() {
-	    const eyeSpawnInterval = 14500;
-	    const randomLevel = ['level1', 'level2'][Math.floor(Math.random() * 2)];
-	    this.selectBackground(randomLevel);
+	    //this.selectRandomLevel();
+	    this.selectBackground(this.level);
 	    this.generateMonsterChance = 0.001;
-	    this.level = randomLevel === 'level1' ? 'level1' : 'level2';
-
+	    const eyeSpawnInterval = 14500;
 	    const spawnEye = setInterval(() => {
-	      if (!this.paused) {
-	        this.spawnEyes();
-	      }
+	      if (!this.paused) this.spawnEyes();
 	    }, eyeSpawnInterval);
 	  }
 
 	  coop() {
-	    const randomLevel = ['level1', 'level2'][Math.floor(Math.random() * 2)];
-	    this.selectBackground(randomLevel);
-	    this.level = randomLevel === 'level1' ? 'level1' : 'level2';
-	    this.generateMonsterChance = 0.003;
-	    this.numberEyeSpawn = 1;
-	    const bossTiming = 50000; //50 sec
-	    const eyeSpawnInterval = 9500; //9.5 sec
+	    //this.level = 'level3'
+	    this.selectBackground(this.level);
+	    //this.selectRandomLevel();
+	    this.generateMonsterChance = 0.005;
+	    const bossTiming = 20000;
+	    const eyeSpawnInterval = 9500;
 
-	    let spawnEye = setInterval(() => {
-	      //limit eyes on boss appearance, otherwise increment
-	      if (this.generateMonsterChance === 0) {
-	        this.numberEyeSpawn = 2;
-	      }
-	      //call eye spawning
-	      if (!this.paused) {
-	        this.spawnEyes();
-	        this.numberEyeSpawn++;
-	      }
-	    }, eyeSpawnInterval);
+	    if (this.level === 'level1') {
+	      // need to clear these set intervals 
+	      setInterval(() => {
+	        if (!this.paused && this.level === 'level1') {
+	          this.spawnEyes();
+	          if (this.numberEyeSpawn < 6) this.numberEyeSpawn++;
+	        }
+	      }, eyeSpawnInterval);
+	    } else if (this.level === 'level2') {
+	      // and this too...
+	      setInterval(() => {
+	        if (!this.paused && this.level === 'level2') this.spawnEyes();
+	      }, eyeSpawnInterval);
 
-	    setTimeout(() => {
-	      this.enemies.push(this.boss);
-	      this.numberEyeSpawn = 2;
+	      setTimeout(() => {
+	        this.enemies.push(this.boss);
+	        this.generateMonsterChance = 0;
+	      }, bossTiming);
+	    } else if (this.level === 'level3') {
+	      this.secret = new Secret(this.ctx);
+	      this.enemies.push(this.joker);
+	      //this.enemies.push(this.cerberus);
 	      this.generateMonsterChance = 0;
-	    }, bossTiming);
+
+	      setInterval(() => {
+	        // and clear this setInterval too
+	        if (!this.paused && !this.secret) this.secret = new Secret(this.ctx);
+	      }, eyeSpawnInterval);
+	    }
+	  }
+
+	  selectRandomLevel() {
+	    const allLevels = ['level1', 'level2', 'level3'];
+	    const randomLevel = allLevels[Math.floor(Math.random() * allLevels.length)];
+	    this.selectBackground(randomLevel);
+	    this.level = randomLevel;
+	  }
+
+	  transport() {
+	    const allBodies = [this.player1, this.player2, this.boss, ...this.allArrows, ...this.enemies];
+
+	    if (this.level === 'level1' || this.level === 'level2') {
+	      allBodies.forEach(body => {
+	        if (body.x > 1000) body.x = 0;else if (body.x < 0) body.x = 1000;
+
+	        if (body.y > 750) body.y = 0;
+	      });
+	    } else if (this.level === 'level3') {
+	      allBodies.forEach(body => {
+	        if (body.x > 1000 && body.y > 300) {
+	          body.x = 0;
+	          body.y -= 340;
+	        } else if (body.x < 0 && body.y < 320) {
+	          body.x = 1000;
+	          body.y += 340;
+	        }
+
+	        if (body.x > 1000 && body.y < 300) {
+	          body.x = 0;
+	          body.y += 350;
+	        } else if (body.x < 0 && body.y > 320) {
+	          body.x = 1000;
+	          body.y -= 350;
+	        }
+
+	        if (body.y > 750) {
+	          body.y = 0;
+	          body.x += 650;
+	        }
+	      });
+	    }
 	  }
 
 	  spawnEyes() {
 	    this.randomX = Math.random() * 700 + 150;
-	    this.randomY = Math.random() * 700;
+	    this.randomY = Math.random() * 500 + 100;
 	    this.canUsePortal = true;
 	    const delaySpawn = 2500;
 	    const closePortal = 4500;
@@ -311,7 +388,7 @@
 
 	    setTimeout(() => {
 	      let spawn = setInterval(() => {
-	        if (counter === this.numberEyeSpawn) {
+	        if (counter >= this.numberEyeSpawn) {
 	          clearInterval(spawn);
 	        }
 	        this.enemies.push(new Eye(this.randomX, this.randomY, this.ctx, this.player1, this.player2));
@@ -337,27 +414,53 @@
 	    }
 	  }
 
-	  updateEnemies() {
+	  playerHit() {
+	    this.allArrows = [...this.player1.arrows, ...this.player2.arrows, ...this.boss.arrows];
+	    const player1HitCondition = (this.player1.isColliding(this.allArrows) || this.player1.isColliding(this.enemies)) && !this.player1.invincible;
+	    const player2HitCondition = (this.player2.isColliding(this.allArrows) || this.player2.isColliding(this.enemies)) && !this.player2.invincible;
 
-	    if (!this.generateEnemy) {
-	      setTimeout(() => {
-	        this.generateEnemy = true;
-	      }, this.enemyGenTiming);
-	    } else if (Math.random() < this.generateMonsterChance) {
-	      this.enemies.push(new Enemy(this.ctx, this.background.platforms));
-	      this.generateEnemy = false;
+	    if (player1HitCondition) {
+	      this.filterCollidingArrows([this.player1]);
+	      this.player1.hit();
+	      this.player1.upgradeSpeed = 0;
+	      this.player1.quiver = 3;
 	    }
+	    if (player2HitCondition) {
+	      this.filterCollidingArrows([this.player2]);
+	      this.player2.hit();
+	      this.player2.upgradeSpeed = 0;
+	      this.player2.quiver = 3;
+	    }
+	  }
 
+	  updateEnemies() {
 	    this.enemies.forEach(enemy => {
 	      enemy.update();
-	      if (enemy.isColliding(this.allArrows) && enemy instanceof Boss && !enemy.dead) {
+	      if (enemy.isColliding(this.allArrows) && enemy instanceof Joker && !enemy.dead) {
+	        enemy.hitA();
+	        this.filterCollidingArrows([enemy]);
+	        setTimeout(() => {
+	          this.enemies = this.enemies.filter(enemy => !enemy.dead);
+	        }, 900);
+	        if (this.joker.lives === 0) {
+	          this.joker = undefined;
+	        }
+	      } else if (enemy.isColliding(this.allArrows) && enemy instanceof Cerberus && !enemy.dead) {
+	        enemy.hitA();
+	        this.filterCollidingArrows([enemy]);
+
+	        setTimeout(() => {
+	          this.enemies = this.enemies.filter(enemy => !enemy.dead);
+	        }, 900);
+	      } else if (enemy.isColliding(this.allArrows) && enemy instanceof Boss && !enemy.dead) {
 	        enemy.hitBoss();
 	        this.filterCollidingArrows([enemy]);
 
 	        setTimeout(() => {
 	          this.enemies = this.enemies.filter(enemy => !enemy.dead);
 	        }, 900);
-	      } else if (enemy.isColliding(this.allArrows) && !enemy.dead) {
+	      } else if (enemy.isColliding(this.allArrows) && !enemy.dead && !enemy.invincible) {
+	        this.monsterKillCount++;
 	        enemy.dead = true;
 	        this.filterCollidingArrows([enemy]);
 
@@ -366,6 +469,17 @@
 	        }, 900);
 	      }
 	    });
+	  }
+
+	  createEnemy() {
+	    if (!this.generateEnemy) {
+	      setTimeout(() => {
+	        this.generateEnemy = true;
+	      }, this.enemyGenTiming);
+	    } else if (Math.random() < this.generateMonsterChance) {
+	      this.enemies.push(new Enemy(this.ctx, this.background.platforms));
+	      this.generateEnemy = false;
+	    }
 	  }
 
 	  filterCollidingArrows(target) {
@@ -404,68 +518,102 @@
 	    }
 	  }
 
+	  level3() {
+	    if (this.secret) {
+	      this.secret.draw();
+	      if (this.secret.isColliding([this.player1, this.player2])) {
+	        this.secret = undefined;
+	        this.secretCollected++;
+	        this.jokerRespawnTime -= 150;
+	        if (this.ceberus === undefined) {
+	          this.cerberus = new Cerberus(this.ctx, 530, 600, this.player1, this.player2, this.background.platforms);
+	          setTimeout(() => {
+	            this.enemies.push(this.cerberus);
+	          }, 1000);
+	        }
+	        if (this.joker) this.joker.speed += this.secretCollected * 0.13;
+	      }
+	    }
+
+	    if (this.joker === undefined) {
+	      if (this.canSpawnJoker) {
+	        this.canSpawnJoker = false;
+	        setTimeout(() => {
+	          this.joker = new Joker(500, 350, this.ctx, this.player1, this.player2);
+	          this.enemies.push(this.joker);
+	          this.joker.speed += this.secretCollected * 0.13;
+	          this.canSpawnJoker = true;
+	        }, this.jokerRespawnTime);
+	      }
+	    }
+	  }
+
 	  gameOverScreen() {
 	    this.ctx.fillStyle = 'rgba(236, 236, 236, 0.7)';
-	    this.ctx.font = "bold 70pt Tahoma";
+	    this.ctx.font = "70pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
 	    this.ctx.fillText('Game Over', 500, 250);
-	    this.ctx.font = "italic bold 40pt Tahoma";
+	    this.ctx.font = "40pt arcadeclassicregular";
 	    if (this.player1.lives === 0) {
 	      this.ctx.fillText('Player 2 Wins!', 500, 420);
 	    } else {
 	      this.ctx.fillText('Player 1 Wins!', 500, 420);
 	    }
-	    this.ctx.font = 'italic 20pt Tahoma';
+	    this.ctx.font = '20pt arcadeclassicregular';
 	    this.ctx.fillText('Press [N] for new game', 500, 550);
 	  }
 
 	  coopOverScreen() {
 	    this.ctx.fillStyle = 'rgba(236, 236, 236, 0.7)';
-	    this.ctx.font = "bold 70pt Tahoma";
+	    this.ctx.font = "70pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
 	    this.ctx.fillText('Game Over', 500, 250);
 	  }
 
 	  coopVictoryScreen() {
 	    this.ctx.fillStyle = 'rgba(236, 236, 236, 0.7)';
-	    this.ctx.font = "bold 70pt Tahoma";
+	    this.ctx.font = "70pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
 	    this.ctx.fillText('Victory', 500, 250);
 	  }
 
 	  instructions() {
 	    this.ctx.fillStyle = 'rgba(103, 128, 159, 0.9)';
-	    this.ctx.font = "bold 16pt Tahoma";
+	    this.ctx.font = "16pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
-	    if (this.mode === 'coop') {
+
+	    if (this.mode === 'coop' && this.level === 'level1') {
+	      this.ctx.fillText(`Defeat ${50 - this.monsterKillCount} monsters`, 500, 20);
+	    } else if (this.mode === 'coop' && this.level === 'level2') {
 	      this.ctx.fillText('Defeat the Boss', 500, 20);
+	    } else if (this.mode === 'coop' && this.level === 'level3') {
+	      this.ctx.fillText(`Collect ${10 - this.secretCollected}   Secrets`, 500, 20);
 	    }
+
 	    if (this.mode === 'versus') {
-	      this.ctx.fillText('Defeat the other Player', 500, 20);
+	      this.ctx.fillText('Defeat the  other  Player', 500, 20);
 	    }
 	  }
 
 	  displayControls() {
+	    const controls1 = new Image(50, 40);
+	    const controls2 = new Image(50, 40);
+	    controls1.src = '../assets/p1-controls.png';
+	    controls2.src = '../assets/p2-controls.png';
+
 	    this.ctx.globalAlpha = 0.025;
 	    this.ctx.fillStyle = 'rgba(100, 100, 100, .2)';
 	    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 	    this.ctx.fillStyle = 'rgba(236, 236, 236, 0.7)';
-	    this.ctx.font = "bold 30pt Tahoma";
+	    this.ctx.font = "30pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
 	    this.ctx.fillText('controls', 500, 50);
 	    this.ctx.fillText('Player 1', 250, 100);
-	    this.ctx.fillText('Left: A', 250, 200);
-	    this.ctx.fillText('Right: D', 250, 300);
-	    this.ctx.fillText('Jump: W', 250, 400);
-	    this.ctx.fillText('Shoot: Shift', 250, 500);
+	    this.ctx.drawImage(controls1, 59, 180, 350, 260);
 	    this.ctx.fillText('Player 2', 750, 100);
-	    this.ctx.fillText('Left: [', 750, 200);
-	    this.ctx.fillText('Right: \\', 750, 300);
-	    this.ctx.fillText('Jump: =', 750, 400);
-	    this.ctx.fillText('Shoot: P', 750, 500);
+	    this.ctx.drawImage(controls2, 550, 250, 370, 180);
 	    this.ctx.fillText('Press [spacebar] to play', 500, 600);
 	  }
-
 	}
 
 	module.exports = Game;
@@ -558,17 +706,6 @@
 	    } else {
 	      this.dy = this.gravity();
 	      this.jumping = false;
-	    }
-	    //transport left and right
-	    if (this.x > 1000) {
-	      this.x = 0;
-	    } else if (this.x < 0) {
-	      this.x = 1000;
-	    }
-	    //transport from bottom to random top area
-	    if (this.y > 800) {
-	      this.y = 0;
-	      //this.x = Math.random() * 1000;
 	    }
 
 	    //standard x and y update
@@ -685,7 +822,7 @@
 	      this.ctx.globalAlpha = 1;
 	    }
 	    if (this.invincibleTimer > 0) {
-	      this.ctx.font = "14pt Tahoma";
+	      this.ctx.font = "Bold 14pt arcadeclassicregular";
 	      this.ctx.fillstyle = 'rgba(236, 236, 236, 0.7)';
 	      this.ctx.textAlign = 'center';
 	      this.ctx.fillText(this.invincibleTimer, this.x + 18, this.y - 48);
@@ -756,10 +893,13 @@
 	  }
 
 	  hit() {
-	    if (!this.dead) {
+	    if (!this.dead && !this.invincible) {
 	      this.dead = true;
 	      this.lives--;
 	      this.canShoot = false;
+	      if (this.lives === 0) {
+	        this.arrows = [];
+	      }
 	      if (this.lives !== 0) {
 	        setTimeout(() => {
 	          this.dead = false;
@@ -768,7 +908,8 @@
 	          this.invincibleTimer = 4;
 	          this.invincibleCountdown();
 	          this.y = -100;
-	          this.x = Math.random() * 700 + 150;
+	          this.x = 750;
+	          //this.x = Math.random() * 700 + 150;
 	        }, 1200);
 	        setTimeout(() => {
 	          this.invincible = false;
@@ -785,15 +926,17 @@
 	        let upgrade = powerups[Math.floor(Math.random() * powerups.length)];
 
 	        // invincibility upgrade
-	        if (upgrade === 'invincible' && !this.invincible) {
-	          this.invincible = true;
-	          this.invincibleTimer = 10;
-	          this.invincibleCountdown();
-	          setTimeout(() => {
-	            this.invincible = false;
-	          }, 10000);
-	        } else if (upgrade === 'invincible' && this.invincible) {
-	          this.lives++;
+	        if (upgrade === 'invincible') {
+	          if (!this.invincible) {
+	            this.invincible = true;
+	            this.invincibleTimer = 10;
+	            this.invincibleCountdown();
+	            setTimeout(() => {
+	              this.invincible = false;
+	            }, 10000);
+	          } else {
+	            this.lives++;
+	          }
 	        } else {
 	          // all other upgrades
 	          this[upgrade]++;
@@ -918,12 +1061,6 @@
 	  }
 
 	  update() {
-	    if (this.x > 1000) {
-	      this.x = 0;
-	    } else if (this.x < 0) {
-	      this.x = 1000;
-	    }
-
 	    if (this.direction === 'right') {
 	      this.x += this.dx;
 	      this.dx += this.drag;
@@ -953,7 +1090,7 @@
 	    this.width = 20;
 	    this.height = 45;
 	    this.x = Math.random() * 700 + 150;
-	    this.y = -100;
+	    this.y = 50;
 	    this.dx = .3;
 	    this.dy = 0;
 	    this.platforms = platforms;
@@ -972,7 +1109,7 @@
 	    if (this.isColliding(this.platforms)) {
 	      this.dx = -this.dx;
 	    }
-	    if (this.x > 1000) {
+	    if (this.x > 1000 - this.width) {
 	      this.x = 0;
 	    } else if (this.y > 700) {
 	      this.y = 0;
@@ -989,7 +1126,7 @@
 	      }, reverseTime);
 	    }
 
-	    if (this.dx > 0) {
+	    if (this.dx >= 0) {
 	      this.direction = 'right';
 	    } else {
 	      this.direction = 'left';
@@ -1074,9 +1211,37 @@
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	const Platform = __webpack_require__(8);
-	const level1 = __webpack_require__(9);
-	const level2 = __webpack_require__(10);
+	const Bodies = __webpack_require__(3);
+
+	class Secret extends Bodies {
+	  constructor(ctx) {
+	    super(...arguments);
+	    this.x = 540;
+	    this.y = 370;
+	    this.img = new Image();
+	    this.img.src = '../assets/scrolls.png';
+	    this.width = 35;
+	    this.height = 35;
+	    this.ctx = ctx;
+	  }
+
+	  draw() {
+	    this.ctx.globalAlpha = 0.8;
+	    this.ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+	    this.ctx.globalAlpha = 1;
+	  }
+	}
+
+	module.exports = Secret;
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	const Platform = __webpack_require__(9);
+	const level1 = __webpack_require__(10);
+	const level2 = __webpack_require__(11);
+	const level3 = __webpack_require__(12);
 
 	class Background {
 	  constructor(ctx2, ctx3, level = 'level1') {
@@ -1086,11 +1251,15 @@
 	    this.levelConfig = {
 	      level1: {
 	        platforms: level1,
-	        src: '../assets/level1/moon-backdrop.png'
+	        src: '../assets/level1/moon-backdrop.jpg'
 	      },
 	      level2: {
 	        platforms: level2,
-	        src: '../assets/level2/lake-backdrop.png' // '../assets/level2/nightsnow.jpg'
+	        src: '../assets/level2/lake-backdrop.jpg'
+	      },
+	      level3: {
+	        platforms: level3,
+	        src: '../assets/level3/fire-cavern.jpg'
 	      }
 	    };
 	    this.backdrop.src = this.levelConfig[this.level].src;
@@ -1100,13 +1269,15 @@
 
 	  createBackground() {
 	    this.levelConfig[this.level].platforms.forEach(obj => {
-	      this.platforms.push(new Platform(this.ctx2, obj.x, obj.y, obj.width, obj.height, obj.src, obj.dx, obj.dy, obj.dWidth, obj.dHeight));
+	      this.platforms.push(new Platform(this.ctx2, obj.x, obj.y, obj.width, obj.height, obj.src, obj.dx, obj.dy, obj.dWidth, obj.dHeight, obj.visible, obj.detect));
 	    });
 	  }
 
 	  drawBackground() {
 	    this.ctx3.drawImage(this.backdrop, 0, 0, 1000, 700);
-	    this.platforms.forEach(platform => platform.draw());
+	    this.platforms.forEach(platform => {
+	      if (platform.visible) platform.draw();
+	    });
 	  }
 
 	  changeBackground(level) {
@@ -1119,11 +1290,11 @@
 	module.exports = Background;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 	class Platform {
-	  constructor(ctx, x, y, width, height, src, dx, dy, dWidth, dHeight) {
+	  constructor(ctx, x, y, width, height, src, dx, dy, dWidth, dHeight, visible, detect) {
 	    this.image = new Image();
 	    this.image.src = src;
 	    this.x = x;
@@ -1135,6 +1306,8 @@
 	    this.dWidth = dWidth;
 	    this.dHeight = dHeight;
 	    this.ctx = ctx;
+	    this.visible = visible || false;
+	    this.detect = detect || false;
 	  }
 
 	  draw() {
@@ -1145,7 +1318,7 @@
 	module.exports = Platform;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports) {
 
 	const level = [
@@ -1154,6 +1327,8 @@
 	{
 	  name: 'left-side',
 	  src: '../assets/level1/l-side.png',
+	  visible: true,
+	  detect: true,
 	  x: 0,
 	  y: 200,
 	  width: 60,
@@ -1165,6 +1340,8 @@
 	}, {
 	  name: 'left-lower-level',
 	  src: '../assets/level1/l-lower-level.png',
+	  visible: true,
+	  detect: true,
 	  x: 0,
 	  y: 600,
 	  width: 300,
@@ -1176,6 +1353,8 @@
 	}, {
 	  name: 'left-ground',
 	  src: '../assets/level1/l-ground.png',
+	  visible: true,
+	  detect: true,
 	  x: 0,
 	  y: 650,
 	  width: 450,
@@ -1187,6 +1366,8 @@
 	}, {
 	  name: 'left-side-ledge',
 	  src: '../assets/level1/l-side-ledge.png',
+	  visible: true,
+	  detect: true,
 	  x: 30,
 	  y: 430,
 	  width: 30,
@@ -1201,6 +1382,8 @@
 	{
 	  name: 'right-side',
 	  src: '../assets/level1/r-side.png',
+	  visible: true,
+	  detect: true,
 	  x: 940,
 	  y: 200,
 	  width: 65,
@@ -1212,6 +1395,8 @@
 	}, {
 	  name: 'right-lower-level',
 	  src: '../assets/level1/r-lower-level.png',
+	  visible: true,
+	  detect: true,
 	  x: 700,
 	  y: 600,
 	  width: 300,
@@ -1223,6 +1408,8 @@
 	}, {
 	  name: 'right-ground',
 	  src: '../assets/level1/r-ground.png',
+	  visible: true,
+	  detect: true,
 	  x: 550,
 	  y: 650,
 	  width: 450,
@@ -1234,6 +1421,8 @@
 	}, {
 	  name: 'right-side-ledge',
 	  src: '../assets/level1/r-side-ledge.png',
+	  visible: true,
+	  detect: true,
 	  x: 940,
 	  y: 430,
 	  width: 30,
@@ -1248,6 +1437,8 @@
 	{
 	  name: 'center-platform-tree',
 	  src: '../assets/level1/center-platform-tree.png',
+	  visible: true,
+	  detect: true,
 	  x: 500,
 	  y: 400,
 	  width: 10,
@@ -1259,6 +1450,8 @@
 	}, {
 	  name: 'center-platform-low',
 	  src: '../assets/level1/center-platform-low.png',
+	  visible: true,
+	  detect: true,
 	  x: 375,
 	  y: 442,
 	  width: 250,
@@ -1270,6 +1463,8 @@
 	}, {
 	  name: 'center-platform-high',
 	  src: '../assets/level1/center-platform-high.png',
+	  visible: true,
+	  detect: true,
 	  x: 310,
 	  y: 120,
 	  width: 370,
@@ -1281,6 +1476,8 @@
 	}, {
 	  name: 'left-platform',
 	  src: '../assets/level1/side-platform.png',
+	  visible: true,
+	  detect: true,
 	  x: 140,
 	  y: 280,
 	  width: 120,
@@ -1292,6 +1489,8 @@
 	}, {
 	  name: 'right-platform',
 	  src: '../assets/level1/side-platform.png',
+	  visible: true,
+	  detect: true,
 	  x: 740,
 	  y: 280,
 	  width: 120,
@@ -1305,7 +1504,7 @@
 	module.exports = level;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports) {
 
 	const level2 = [
@@ -1314,6 +1513,8 @@
 	{
 	  name: 'left-ground',
 	  src: '../assets/level2/left-ground.png',
+	  visible: true,
+	  detect: true,
 	  x: 0,
 	  y: 650,
 	  width: 250,
@@ -1325,6 +1526,8 @@
 	}, {
 	  name: 'right-ground',
 	  src: '../assets/level2/right-ground.png',
+	  visible: true,
+	  detect: true,
 	  x: 750,
 	  y: 650,
 	  width: 250,
@@ -1336,6 +1539,8 @@
 	}, {
 	  name: 'center-ground',
 	  src: '../assets/level2/center-ground.png',
+	  visible: true,
+	  detect: true,
 	  x: 350,
 	  y: 650,
 	  width: 300,
@@ -1347,6 +1552,8 @@
 	}, {
 	  name: 'center-platform',
 	  src: '../assets/level2/center-platform.png',
+	  visible: true,
+	  detect: true,
 	  x: 400,
 	  y: 320,
 	  width: 200,
@@ -1358,6 +1565,8 @@
 	}, {
 	  name: 'left-transit',
 	  src: '../assets/level2/level2fill.png',
+	  visible: false,
+	  detect: true,
 	  x: 0,
 	  y: 400,
 	  width: 100,
@@ -1369,6 +1578,8 @@
 	}, {
 	  name: 'right-transit',
 	  src: '../assets/level2/level2fill.png',
+	  visible: false,
+	  detect: true,
 	  x: 900,
 	  y: 400,
 	  width: 100,
@@ -1380,6 +1591,8 @@
 	}, {
 	  name: 'left-low-platform',
 	  src: '../assets/level2/small-platform.png',
+	  visible: true,
+	  detect: true,
 	  x: 250,
 	  y: 480,
 	  width: 100,
@@ -1391,6 +1604,8 @@
 	}, {
 	  name: 'right-low-platform',
 	  src: '../assets/level2/small-platform.png',
+	  visible: true,
+	  detect: true,
 	  x: 650,
 	  y: 480,
 	  width: 100,
@@ -1402,6 +1617,8 @@
 	}, {
 	  name: 'left-upper-platform',
 	  src: '../assets/level2/small-platform.png',
+	  visible: true,
+	  detect: true,
 	  x: 250,
 	  y: 150,
 	  width: 100,
@@ -1413,6 +1630,8 @@
 	}, {
 	  name: 'right-upper-platform',
 	  src: '../assets/level2/small-platform.png',
+	  visible: true,
+	  detect: true,
 	  x: 650,
 	  y: 150,
 	  width: 100,
@@ -1424,6 +1643,8 @@
 	}, {
 	  name: 'left-upper-wall',
 	  src: '../assets/level2/left-upper-wall.png',
+	  visible: true,
+	  detect: true,
 	  x: 0,
 	  y: 0,
 	  width: 30,
@@ -1435,6 +1656,8 @@
 	}, {
 	  name: 'right-upper-wall',
 	  src: '../assets/level2/right-upper-wall.png',
+	  visible: true,
+	  detect: true,
 	  x: 970,
 	  y: 0,
 	  width: 30,
@@ -1446,6 +1669,8 @@
 	}, {
 	  name: 'left-tiny-ledge',
 	  src: '../assets/level2/level2fill.png',
+	  visible: true,
+	  detect: true,
 	  x: 0,
 	  y: 200,
 	  width: 40,
@@ -1457,6 +1682,8 @@
 	}, {
 	  name: 'right-tiny-ledge',
 	  src: '../assets/level2/level2fill.png',
+	  visible: false,
+	  detect: true,
 	  x: 960,
 	  y: 200,
 	  width: 40,
@@ -1468,6 +1695,8 @@
 	}, {
 	  name: 'left-lower-wall',
 	  src: '../assets/level2/left-lower-wall.png',
+	  visible: true,
+	  detect: true,
 	  x: 0,
 	  y: 400,
 	  width: 30,
@@ -1479,6 +1708,8 @@
 	}, {
 	  name: 'right-lower-wall',
 	  src: '../assets/level2/right-lower-wall.png',
+	  visible: true,
+	  detect: true,
 	  x: 965,
 	  y: 400,
 	  width: 35,
@@ -1492,11 +1723,201 @@
 	module.exports = level2;
 
 /***/ }),
-/* 11 */
+/* 12 */
+/***/ (function(module, exports) {
+
+	const level3 = [{
+	  name: 'main-ground',
+	  src: '../assets/level3/main-ground.png',
+	  visible: true,
+	  detect: true,
+	  x: 200,
+	  y: 650,
+	  width: 800,
+	  height: 50,
+	  dx: 200,
+	  dy: 600,
+	  dWidth: 800,
+	  dHeight: 100
+	}, {
+	  name: 'fire',
+	  src: '../assets/level3/level3fill.png',
+	  visible: false,
+	  detect: true,
+	  x: 580,
+	  y: 640,
+	  width: 20,
+	  height: 10,
+	  dx: 0,
+	  dy: 0,
+	  dWidth: 0,
+	  dHeight: 0
+	}, {
+	  name: 'left-lower-ledge',
+	  src: '../assets/level3/left-lower-ledge.png',
+	  visible: true,
+	  detect: true,
+	  x: 0,
+	  y: 480,
+	  width: 200,
+	  height: 30,
+	  dx: -1,
+	  dy: 420,
+	  dWidth: 214,
+	  dHeight: 90
+	}, {
+	  name: 'left-upper-ledge',
+	  src: '../assets/level3/left-upper-ledge.png',
+	  visible: true,
+	  detect: true,
+	  x: 0,
+	  y: 310,
+	  width: 100,
+	  height: 50,
+	  dx: 0,
+	  dy: 310,
+	  dWidth: 100,
+	  dHeight: 50
+	}, {
+	  name: 'left-lower-wall',
+	  src: '../assets/level3/left-lower-wall.png',
+	  visible: true,
+	  detect: true,
+	  x: 0,
+	  y: 510,
+	  width: 30,
+	  height: 300, //extra to prevent unwanted location
+	  dx: 0,
+	  dy: 510,
+	  dWidth: 32,
+	  dHeight: 300
+	}, {
+	  name: 'left-upper-wall',
+	  src: '../assets/level3/left-upper-wall.png',
+	  visible: true,
+	  detect: true,
+	  x: 0,
+	  y: 0,
+	  width: 30,
+	  height: 200,
+	  dx: 0,
+	  dy: 0,
+	  dWidth: 32,
+	  dHeight: 200
+	}, {
+	  name: 'right-main-wall',
+	  src: '../assets/level3/right-main-wall.png',
+	  visible: true,
+	  detect: true,
+	  x: 970,
+	  y: 160,
+	  width: 30,
+	  height: 360,
+	  dx: 940,
+	  dy: 160,
+	  dWidth: 60,
+	  dHeight: 360
+	}, {
+	  name: 'right-upper-ledge',
+	  src: '../assets/level3/right-upper-ledge.png',
+	  visible: true,
+	  detect: true,
+	  x: 900,
+	  y: 130,
+	  width: 100,
+	  height: 30,
+	  dx: 893,
+	  dy: 130,
+	  dWidth: 108,
+	  dHeight: 30
+	}, {
+	  name: 'right-lower-ledge',
+	  src: '../assets/level3/right-lower-ledge.png',
+	  visible: false,
+	  detect: true,
+	  x: 940,
+	  y: 490,
+	  width: 30,
+	  height: 30,
+	  dx: 940,
+	  dy: 490,
+	  dWidth: 0,
+	  dHeight: 0
+	}, {
+	  name: 'right-float-platform',
+	  src: '../assets/level3/right-float-platform.png',
+	  visible: true,
+	  detect: true,
+	  x: 680,
+	  y: 280,
+	  width: 150,
+	  height: 60,
+	  dx: 672,
+	  dy: 220,
+	  dWidth: 166,
+	  dHeight: 120
+	}, {
+	  name: 'left-lower-float-platform',
+	  src: '../assets/level3/left-lower-float-platform.png',
+	  visible: true,
+	  detect: true,
+	  x: 350,
+	  y: 400,
+	  width: 130,
+	  height: 30,
+	  dx: 348,
+	  dy: 400,
+	  dWidth: 138,
+	  dHeight: 30
+	}, {
+	  name: 'left-upper-float-platform',
+	  src: '../assets/level3/left-upper-float-platform.png',
+	  visible: true,
+	  detect: true,
+	  x: 250,
+	  y: 200,
+	  width: 100,
+	  height: 50,
+	  dx: 244,
+	  dy: 200,
+	  dWidth: 112,
+	  dHeight: 50
+	}, {
+	  name: 'top-wall-main',
+	  src: '../assets/level3/top-wall-main.png',
+	  visible: true,
+	  detect: true,
+	  x: 0,
+	  y: 0,
+	  width: 680,
+	  height: 30,
+	  dx: 30,
+	  dy: 0,
+	  dWidth: 680,
+	  dHeight: 30
+	}, {
+	  name: 'top-wall-right',
+	  src: '../assets/level3/top-wall-right.png',
+	  visible: true,
+	  detect: true,
+	  x: 830,
+	  y: 0,
+	  width: 170,
+	  height: 30,
+	  dx: 830,
+	  dy: 0,
+	  dWidth: 170,
+	  dHeight: 30
+	}];
+
+	module.exports = level3;
+
+/***/ }),
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Player = __webpack_require__(2);
-	const Fireball = __webpack_require__(12);
+	const Fireball = __webpack_require__(14);
 
 	class Boss extends Player {
 	  constructor(ctx, platforms, player1, player2) {
@@ -1561,12 +1982,6 @@
 	    this.dy = this.gravity();
 	    if (this.isColliding(this.platforms)) {
 	      this.dx = -this.dx;
-	    }
-	    if (this.x > 1000) {
-	      this.x = 0;
-	    } else if (this.y > 700) {
-	      this.y = 0;
-	      //this.x = Math.random() * 1000;
 	    }
 
 	    //player tracking horizontal
@@ -1665,7 +2080,7 @@
 	      this.hit = true;
 	      this.lives--;
 	      this.canShoot = false;
-	      console.log(this.lives);
+	      console.log('boss lives: ', this.lives);
 	      if (this.lives !== 0) {
 	        setTimeout(() => {
 	          this.canShoot = true;
@@ -1674,7 +2089,6 @@
 	      }
 	      if (this.lives === 0) {
 	        this.dead = true;
-	        console.log('boss defeated');
 	      }
 	    }
 	  }
@@ -1684,7 +2098,7 @@
 	module.exports = Boss;
 
 /***/ }),
-/* 12 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Arrow = __webpack_require__(4);
@@ -1747,11 +2161,11 @@
 	module.exports = Fireball;
 
 /***/ }),
-/* 13 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Player = __webpack_require__(2);
-	const Kunai = __webpack_require__(14);
+	const Kunai = __webpack_require__(16);
 
 	class Ninja extends Player {
 	  constructor() {
@@ -1761,7 +2175,7 @@
 	    this.speed = 4.4;
 	    this.shotTiming = 0;
 	    this.wepNumber = 1;
-	    this.reloadDelay = 1200;
+	    this.reloadDelay = 1000;
 	  }
 
 	  arrow() {
@@ -1835,7 +2249,7 @@
 	module.exports = Ninja;
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Arrow = __webpack_require__(4);
@@ -1864,11 +2278,11 @@
 	module.exports = Kunai;
 
 /***/ }),
-/* 15 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Player = __webpack_require__(2);
-	const Orb = __webpack_require__(16);
+	const Orb = __webpack_require__(18);
 
 	class Mage extends Player {
 	  constructor() {
@@ -1955,7 +2369,7 @@
 	module.exports = Mage;
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Arrow = __webpack_require__(4);
@@ -1963,9 +2377,9 @@
 	class Orb extends Arrow {
 	  constructor(player) {
 	    super(...arguments);
-	    this.dx = 8.3; //6.3
+	    this.dx = 8.3;
 	    this.gravity = 0;
-	    this.drag = 0; //accel
+	    this.drag = 0;
 	    this.height = 25;
 	    this.width = 35;
 	    this.dy = 0;
@@ -1974,12 +2388,6 @@
 	  }
 
 	  update() {
-	    if (this.x > 1000) {
-	      this.x = 0;
-	    } else if (this.x < 0) {
-	      this.x = 1000;
-	    }
-
 	    if (this.direction === 'right') {
 	      this.x += this.dx;
 	      this.y += Math.sin(this.x * this.sinFrequency) * this.sinSize;
@@ -1991,8 +2399,7 @@
 
 	  draw() {
 	    let image = this.updateImage();
-	    // this.ctx.fillStyle = 'red';
-	    // this.ctx.fillRect(this.x, this.y, 20, 20)
+
 	    this.ctx.drawImage(this.arrowImage(), image.sx, image.sy, image.sWidth, image.sHeight, this.x, this.y, this.width, this.height);
 	    return this;
 	  }
@@ -2002,7 +2409,7 @@
 	module.exports = Orb;
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Bodies = __webpack_require__(3);
@@ -2027,9 +2434,9 @@
 	  }
 
 	  chooseTarget() {
-	    if (this.player1.lives === 0) {
+	    if (this.player1.dead) {
 	      return this.player2;
-	    } else if (this.player2.lives === 0) {
+	    } else if (this.player2.dead) {
 	      return this.player1;
 	    } else {
 	      return [this.player1, this.player2][Math.floor(Math.random() * 2)];
@@ -2049,8 +2456,14 @@
 	      this.dx = 0;
 	      this.dy = 0;
 	    }
+
+	    if (this.target.dead) {
+	      this.target = this.chooseTarget();
+	    }
 	    //horizontal tracking
-	    if (!this.dead && this.target.x > this.x) {
+	    if (!this.dead && this.target.x - this.x < 5 && this.target.x - this.x > -5) {
+	      this.dx = 0;
+	    } else if (!this.dead && this.target.x > this.x) {
 	      this.dx = this.speed;
 	      this.direction = 'right';
 	    } else if (!this.dead) {
@@ -2103,35 +2516,299 @@
 	module.exports = Eye;
 
 /***/ }),
-/* 18 */
-/***/ (function(module, exports) {
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
 
-	//build a gameClock
-	//requirements: start, pause, and reset
-	//performance.now()
-	//issues: work it into the loop, need events in Game.js to trigger off clock, need timer to pause when controls are displayed
-	//solution: make new class??
+	const Eye = __webpack_require__(19);
 
-	module.exports = class Clock {
-	  constructor() {
-	    this.running = false;
+	class Joker extends Eye {
+	  constructor(x, y, ctx, player1, player2) {
+	    super(...arguments);
+	    this.width = 40;
+	    this.height = 60;
+	    this.speed = 0.6;
+	    this.lives = 3;
+	    this.centerLocation = { x: 520, y: 350 };
+	    this.target = this.centerLocation;
+	    this.boundary = 400;
+	    this.dead = false;
+	    this.leftPatrol = { x: 470, y: 350 };
+	    this.rightPatrol = { x: 570, y: 350 };
 	  }
 
-	  start() {
-	    if (!this.time) this.time = performance.now();
-	    if (!this.running) this.running = true;
+	  update() {
+	    this.draw();
+	    this.jokerTarget();
+	    this.track();
+
+	    this.x += this.dx;
+	    this.y += this.dy;
 	  }
 
-	  pause() {
-	    this.running = false;
-	    this.time = null;
+	  jokerTarget() {
+	    // if (!this.target) return this.centerLocation
+
+	    const player1Distance = Math.hypot(this.player1.x - 520, this.player1.y - 350);
+	    const player2Distance = Math.hypot(this.player2.x - 520, this.player2.y - 350);
+
+	    const closestPlayer = player1Distance <= player2Distance ? this.player1 : this.player2;
+
+	    if (player1Distance < this.boundary && !this.player1.dead || player2Distance < this.boundary && !this.player2.dead) {
+	      this.target = closestPlayer;
+	    } else if (this.player1.dead && player2Distance < this.boundary) {
+	      this.target = this.player2;
+	    } else if (this.player2.dead && player1Distance < this.boundary) {
+	      this.target = this.player1;
+	    } else {
+	      this.patrol();
+	    }
 	  }
 
-	  reset() {}
-	};
+	  patrol() {
+	    if (this.target !== this.leftPatrol && this.target !== this.rightPatrol && this.x > this.leftPatrol.x) {
+	      this.target = this.leftPatrol;
+	    } else if (this.target === this.leftPatrol && this.x - this.target.x < 10 && this.x - this.target.x > -10) {
+	      this.target = this.rightPatrol;
+	    } else if (this.target === this.rightPatrol && this.x - this.target.x < 10 && this.x - this.target.x > -10) {
+	      this.target = this.leftPatrol;
+	    }
+	  }
+
+	  hitA() {
+	    if (!this.hit) {
+	      this.hit = true;
+	      this.lives--;
+	      if (this.lives !== 0) {
+	        setTimeout(() => {
+	          this.canShoot = true;
+	          this.hit = false;
+	        }, 150);
+	      }
+	      if (this.lives === 0) {
+	        this.dead = true;
+	      }
+	    }
+	  }
+
+	  draw() {
+	    let image = this.enemySprite();
+	    let imageXY = this.updateImage();
+
+	    this.ctx.drawImage(image, imageXY.x, imageXY.y, 90, 100, this.x - 15, this.y - 20, 100, 100);
+	  }
+
+	  enemySprite() {
+	    let img = new Image();
+
+	    img.src = '../assets/joker-sprites.png';
+	    return img;
+	  }
+
+	  updateImage() {
+	    let image = {};
+
+	    image.x = 0;
+	    image.y = 0;
+	    if (this.direction === 'right') {
+	      image.x = 95;
+	    }
+	    if (this.hit) {
+	      image.y = 102;
+	    }
+	    return image;
+	  }
+
+	}
+
+	module.exports = Joker;
 
 /***/ }),
-/* 19 */
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	const Bodies = __webpack_require__(3);
+
+	class Cerberus extends Bodies {
+	  constructor(ctx, x, y, player1, player2, platforms) {
+	    super(...arguments);
+	    this.x = x;
+	    this.y = y;
+	    this.dx = 0;
+	    this.dy = 0;
+	    this.height = 40;
+	    this.width = 60;
+	    this.lives = 3;
+	    this.ctx = ctx;
+	    this.platforms = platforms;
+	    this.player1 = player1;
+	    this.player2 = player2;
+	    this.isLunging = false;
+	    this.canLunge = true;
+	    this.canChangeDirection = true;
+	    this.lungeHeight = -5;
+	    this.lungeSpeed = 6;
+	    this.speed = 2.4;
+	    this.hit = false;
+	    this.direction = 'left';
+	    this.dead = false;
+	    this.gravity = .2;
+	    this.invincible = false;
+	    this.target = this.chooseTarget();
+	  }
+
+	  update() {
+	    this.draw();
+	    this.verticalForces();
+	    this.horizontalForces();
+	    this.shouldAttack();
+
+	    this.x += this.dx;
+	    this.y += this.dy;
+	    this.dy += this.gravity;
+	  }
+
+	  verticalForces() {
+	    if (this.onPlatform() && !this.isLunging) {
+	      //if on platform and not exerting force, zero out
+	      this.dy = 0;
+	      this.gravity = 0;
+	    } else if (this.onPlatform() && this.isLunging) {
+	      //on platform, exerting force, force = exertion
+	      this.dy = this.lungeHeight;
+	    } else if (!this.onPlatform()) {
+	      //if in midair, force = gravity
+	      this.gravity = 0.2;
+	    }
+	  }
+
+	  horizontalForces() {
+	    const targetDistance = Math.hypot(this.target['x'] - this.x + 30, this.target['y'] - this.y);
+	    const agility = targetDistance * 4;
+
+	    if (this.dead) this.dx = 0;
+	    //lunge right
+	    else if (this.isLunging && this.target.x > this.x && this.direction === 'right') {
+	        this.dx = this.lungeSpeed;
+	        //lunge left
+	      } else if (this.isLunging && this.target.x < this.x && this.direction === 'left') {
+	        this.dx = -this.lungeSpeed;
+	        //maintain lunge velocity in air
+	      } else if (!this.onPlatform() && !this.canLunge && this.direction === 'right') {
+	        this.dx = this.lungeSpeed;
+	        //maintain lunge velocity in air
+	      } else if (!this.onPlatform() && !this.canLunge && this.direction === 'left') {
+	        this.dx = -this.lungeSpeed;
+	        //ground tracking
+	      } else if (this.onPlatform() && this.target.x > this.x && this.canChangeDirection) {
+	        // ground 
+	        this.direction = 'right';
+	        this.canChangeDirection = false;
+	        this.dx = this.speed;
+	        setTimeout(() => {
+	          this.canChangeDirection = true;
+	        }, Math.random() * agility);
+	        //ground tracking
+	      } else if (this.onPlatform() && this.target.x < this.x && this.canChangeDirection) {
+	        this.direction = 'left';
+	        this.canChangeDirection = false;
+	        this.dx = -this.speed;
+	        setTimeout(() => {
+	          this.canChangeDirection = true;
+	        }, Math.random() * agility);
+	        //reset to ground speed
+	      } else if (this.dx > this.lungeSpeed - 1) this.dx = this.speed;else if (this.dx < -this.lungeSpeed + 1) this.dx = -this.speed;
+	  }
+
+	  shouldAttack() {
+	    const targetDistance = Math.hypot(this.target['x'] - this.x + 30, this.target['y'] - this.y);
+	    const attackDistance = 300;
+
+	    if (targetDistance < attackDistance && !this.isLunging && this.canLunge) {
+	      this.isLunging = true;
+	      this.canLunge = false;
+	      setTimeout(() => {
+	        this.isLunging = false;
+	      }, 700);
+
+	      setTimeout(() => {
+	        this.canLunge = true;
+	        this.target = this.chooseTarget();
+	      }, 3000);
+	    }
+	  }
+
+	  chooseTarget() {
+	    const player1Distance = Math.hypot(this.player1.x - this.x, this.player1.y - this.y);
+	    const player2Distance = Math.hypot(this.player2.x - this.x, this.player2.y - this.y);
+	    const closestPlayer = player1Distance <= player2Distance ? this.player1 : this.player2;
+
+	    if (this.player1.dead) return this.player2;
+	    if (this.player2.dead) return this.player1;
+
+	    return closestPlayer;
+	  }
+
+	  draw() {
+	    let image = this.enemySprite();
+	    let imageXY = this.updateImage();
+
+	    this.ctx.drawImage(image, imageXY.x, imageXY.y, 80, 55, this.x - 15, this.y - 37, 100, 80);
+	  }
+
+	  enemySprite() {
+	    let img = new Image();
+
+	    img.src = '../assets/cerberus-sprites.png';
+	    return img;
+	  }
+
+	  updateImage() {
+	    let image = {};
+
+	    image.x = 0;
+	    image.y = 0;
+	    if (this.direction === 'right') {
+	      image.x = 80;
+	    }
+	    if (this.hit) {
+	      image.y = 60;
+	    }
+
+	    if (this.isLunging && !this.hit) {
+	      image.x = 155;
+	      if (this.direction === 'right') {
+	        image.x = 240;
+	      }
+	    }
+	    return image;
+	  }
+
+	  onPlatform() {
+	    return this.platforms.some(platform => {
+	      return this.y + this.height >= platform.y && this.y < platform.y && this.x >= platform.x - this.width && this.x + this.width <= platform.x + platform.width + this.width;
+	    });
+	  }
+
+	  hitA() {
+	    if (!this.hit) {
+	      this.hit = true;
+	      this.lives--;
+	      if (this.lives !== 0) {
+	        setTimeout(() => {
+	          this.hit = false;
+	        }, 250);
+	      }
+	      if (this.lives === 0) {
+	        this.dead = true;
+	      }
+	    }
+	  }
+	}
+
+	module.exports = Cerberus;
+
+/***/ }),
+/* 22 */
 /***/ (function(module, exports) {
 
 	class Keyboarder {
