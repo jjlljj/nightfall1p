@@ -4,3 +4,16 @@ A multiplayer game losely based of 'Towerfall' this platform fighting game featu
 
 [Nightfall hosted live on surge](http://nightfall.surge.sh/)
 
+### Install and run Nightfall
+
+to run and install nightfall on your machine, run:
+
+```git clone git@github.com:brucekchung/gametime.git```
+into the desired folder
+
+```npm i```
+then
+
+```npm start```
+then open the correct localhost ie
+``http://localhost:8080/webpack-dev-server/```
