@@ -4,6 +4,8 @@ A multiplayer game losely based of 'Towerfall' this platform fighting game featu
 
 [Nightfall hosted live on surge](http://nightfall.surge.sh/)
 
+![Level2](/assets/readme/level2-boss.png?raw=true "Boss of level2 releasing fireballs")
+
 ### Install and run Nightfall
 
 to run and install nightfall on your machine, run:
