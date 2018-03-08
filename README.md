@@ -6,6 +6,10 @@ A multiplayer game losely based of 'Towerfall' this platform fighting game featu
 
 ![Level2](/assets/readme/level2-boss.png?raw=true "Boss of level2 releasing fireballs")
 
+![Level1](/assets/readme/level1-arrow.png?raw=true "Fighting monsters on level1")
+
+![Level3](/assets/readme/level3-mage.png?raw=true "Mage fires at cerberus and Joker on level3")
+
 ### Install and run Nightfall
 
 to run and install nightfall on your machine, run:
