@@ -1,7 +1,7 @@
 {
-  "name": "game-time-starter-kit-fem1",
+  "name": "Nightfall",
   "version": "1.0.0",
-  "description": "Starter kit for Turing School's front-end module 1 Game Time project",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "./node_modules/webpack-dev-server/bin/webpack-dev-server.js",
@@ -11,14 +11,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/turingschool-examples/game-time-starter-kit-FEm1.git"
+    "url": "git+https://github.com/jjlljj/nightfall1p.git"
   },
-  "author": "Turing School of Software and Design - Robbie Jaeger",
-  "license": "MIT",
+  "author": "James Logue && Bruce Chung",
   "bugs": {
-    "url": "https://github.com/turingschool-examples/game-time-starter-kit-FEm1/issues"
+    "url": ""
   },
-  "homepage": "https://github.com/turingschool-examples/game-time-starter-kit-FEm1#readme",
+  "homepage": "",
   "devDependencies": {
     "babel": "^6.5.2",
     "babel-core": "^6.18.2",
