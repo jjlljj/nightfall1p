@@ -45,7 +45,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Game = __webpack_require__(1);
-	const Keyboarder = __webpack_require__(22);
+	const Keyboarder = __webpack_require__(23);
 	const canvas = document.getElementById('screen');
 	const canvas2 = document.getElementById('background');
 	const canvas3 = document.getElementById('backdrop');
@@ -55,23 +55,18 @@
 	const keyboarder = new Keyboarder();
 
 	function startGame() {
-	  const currentGame = new Game(mode, canvas, canvas2, canvas3, ctx, ctx2, ctx3, keyboarder, player1Character, player2Character, level);
+	  const currentGame = new Game(mode, canvas, canvas2, canvas3, ctx, ctx2, ctx3, keyboarder, player1Character, Ninja, level);
 
-	  mode === 'versus' ? currentGame.versus() : currentGame.coop();
+	  //mode === 'versus' ? currentGame.versus() : currentGame.coop();
+	  currentGame.singlePlayer();
 	  setTimeout(() => currentGame.gameLoop(), 450);
 	}
 
 	//menu events and variables
-	let mode;
+	let mode = "singlePlayer";
 	let level;
 	const menu = document.querySelector('#menu');
-	const versus = document.querySelector('.versus');
 	const coop = document.querySelector('.coop');
-
-	versus.addEventListener('click', () => {
-	  menu.style.zIndex = -1;
-	  mode = 'versus';
-	});
 
 	coop.addEventListener('click', () => {
 	  menu.style.zIndex = -1;
@@ -80,22 +75,18 @@
 
 	//character selection events and variables
 	let player1Character;
-	let player2Character;
 	const characterSelection = document.querySelector('#character-selection');
 	const selectText = document.querySelector('.select-text');
 	const archerSelect = document.querySelector('.archer');
 	const assassinSelect = document.querySelector('.assassin');
 	const mageSelect = document.querySelector('.mage');
 	const Player = __webpack_require__(2);
-	const Ninja = __webpack_require__(15);
-	const Mage = __webpack_require__(17);
+	const Ninja = __webpack_require__(16);
+	const Mage = __webpack_require__(18);
 
 	archerSelect.addEventListener('click', () => {
 	  if (!player1Character) {
 	    player1Character = Player;
-	    selectText.innerHTML = 'Player 2 (right side):';
-	  } else {
-	    player2Character = Player;
 	    characterSelection.style.zIndex = -1;
 	    startGame();
 	  }
@@ -104,9 +95,6 @@
 	assassinSelect.addEventListener('click', () => {
 	  if (!player1Character) {
 	    player1Character = Ninja;
-	    selectText.innerHTML = 'Player 2 (right side):';
-	  } else {
-	    player2Character = Ninja;
 	    characterSelection.style.zIndex = -1;
 	    startGame();
 	  }
@@ -115,10 +103,6 @@
 	mageSelect.addEventListener('click', () => {
 	  if (!player1Character) {
 	    player1Character = Mage;
-	    selectText.innerHTML = 'Player 2 (right side):';
-	  } else {
-	    player2Character = Mage;
-	    characterSelection.style.zIndex = -1;
 	    characterSelection.style.zIndex = -1;
 	    startGame();
 	  }
@@ -129,7 +113,6 @@
 	const selectLevel3 = document.querySelector('.select-level-3');
 
 	selectLevel1.addEventListener('click', () => {
-
 	  level = 'level1';
 	});
 
@@ -146,16 +129,16 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Player = __webpack_require__(2);
-	const Enemy = __webpack_require__(5);
-	const Powerup = __webpack_require__(6);
-	const Secret = __webpack_require__(7);
-	const Background = __webpack_require__(8);
-	const Boss = __webpack_require__(13);
-	const Ninja = __webpack_require__(15);
-	const Mage = __webpack_require__(17);
-	const Eye = __webpack_require__(19);
-	const Joker = __webpack_require__(20);
-	const Cerberus = __webpack_require__(21);
+	const Enemy = __webpack_require__(6);
+	const Powerup = __webpack_require__(7);
+	const Secret = __webpack_require__(8);
+	const Background = __webpack_require__(9);
+	const Boss = __webpack_require__(14);
+	const Ninja = __webpack_require__(16);
+	const Mage = __webpack_require__(18);
+	const Eye = __webpack_require__(20);
+	const Joker = __webpack_require__(21);
+	const Cerberus = __webpack_require__(22);
 	//const Clock = require('./Clock.js');
 
 	class Game {
@@ -174,11 +157,9 @@
 	    this.level = level || 'level1';
 
 	    this.player1 = new player1Character(this.ctx, 175, 100, this.background.platforms, this.keyboarder, 'player1');
-	    this.player2 = new player2Character(this.ctx, 785, 100, this.background.platforms, this.keyboarder, 'player2');
 	    this.player1Character = player1Character;
-	    this.player2Character = player2Character;
-	    this.boss = new Boss(this.ctx, this.background.platforms, this.player1, this.player2);
-	    this.joker = new Joker(500, 350, this.ctx, this.player1, this.player2);
+	    this.boss = new Boss(this.ctx, this.background.platforms, this.player1, this.player1);
+	    this.joker = new Joker(500, 350, this.ctx, this.player1, this.player1);
 	    this.canSpawnJoker = true;
 	    this.jokerRespawnTime = 2500;
 	    this.cerberus;
@@ -202,45 +183,37 @@
 	  }
 
 	  gameLoop() {
-	    const vsCondition = this.player1.lives > 0 && this.player2.lives > 0 && !this.keyboarder.isDown(32) && this.mode === 'versus';
-	    const coopCondition = (this.player1.lives > 0 || this.player2.lives > 0) && !this.keyboarder.isDown(32) && this.mode === 'coop';
-	    const coopVictoryLevel1 = this.monsterKillCount >= 50 && this.level === 'level1';
-	    const coopVictoryLevel2 = this.boss.lives === 0 && this.level === 'level2';
-	    const coopVictoryLevel3 = this.secretCollected === 10 && this.level === 'level3';
+	    const singlePlayerCondition = this.player1.lives > 0 && !this.keyboarder.isDown(80);
 
-	    const coopWin = coopVictoryLevel1 || coopVictoryLevel2 || coopVictoryLevel2;
+	    const victoryLevel1 = this.monsterKillCount >= 50 && this.level === 'level1';
+	    const victoryLevel2 = this.boss.lives === 0 && this.level === 'level2';
+	    const victoryLevel3 = this.secretCollected === 10 && this.level === 'level3';
+
+	    const levelWin = victoryLevel1 || victoryLevel2 || victoryLevel2;
 
 	    this.gameLoop = this.gameLoop.bind(this);
 
-	    if ((vsCondition || coopCondition) && !coopWin) {
+	    if (singlePlayerCondition && !levelWin) {
 	      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	      this.ctx.globalAlpha = 1;
 	      this.updateScreen();
 	      this.paused = false;
 	      requestAnimationFrame(this.gameLoop);
-	    } else if ((this.player1.lives === 0 || this.player2.lives === 0) && this.mode === 'versus') {
-	      this.gameOverScreen();
-	      this.keyboarder.keyState[32] = false;
-	      if (this.keyboarder.isDown(78)) {
-	        this.newGame();
-	        this.selectBackground(this.level);
-	      }
-	      requestAnimationFrame(this.gameLoop);
-	    } else if (coopWin) {
+	    } else if (levelWin) {
 	      this.coopVictoryScreen();
-	      this.keyboarder.keyState[32] = false;
+	      this.keyboarder.keyState[80] = false;
 	      if (this.keyboarder.isDown(78)) {
 	        this.levelUp();
 	        this.newGame();
 	        this.selectBackground(this.level);
-	        this.coop();
+	        this.singlePlayer();
 	      }
 	      requestAnimationFrame(this.gameLoop);
-	    } else if (this.player1.lives === 0 && this.player2.lives === 0 && this.mode === 'coop') {
+	    } else if (this.player1.lives === 0) {
 	      this.coopOverScreen();
-	      this.keyboarder.keyState[32] = false;
+	      this.keyboarder.keyState[80] = false;
 	      requestAnimationFrame(this.gameLoop);
-	    } else if (this.keyboarder.isDown(32)) {
+	    } else if (this.keyboarder.isDown(80)) {
 	      this.displayControls();
 	      this.paused = true;
 	      requestAnimationFrame(this.gameLoop);
@@ -250,7 +223,6 @@
 	  updateScreen() {
 	    this.playerHit();
 	    this.player1.update();
-	    this.player2.update();
 	    this.transport();
 	    this.updatePowerup();
 	    this.drawPortal();
@@ -264,7 +236,6 @@
 	    this.background.platforms = [];
 	    //this.selectRandomLevel();
 	    this.player1 = new this.player1Character(this.ctx, 175, 100, this.background.platforms, this.keyboarder, 'player1');
-	    this.player2 = new this.player2Character(this.ctx, 785, 100, this.background.platforms, this.keyboarder, 'player2');
 	    this.enemies = [];
 	    this.allArrows = [];
 	    this.powerup = undefined;
@@ -296,10 +267,10 @@
 	    }, eyeSpawnInterval);
 	  }
 
-	  coop() {
-	    //this.level = 'level3'
+	  //coop() {
+
+	  singlePlayer() {
 	    this.selectBackground(this.level);
-	    //this.selectRandomLevel();
 	    this.generateMonsterChance = 0.005;
 	    const bossTiming = 20000;
 	    const eyeSpawnInterval = 9500;
@@ -343,7 +314,7 @@
 	  }
 
 	  transport() {
-	    const allBodies = [this.player1, this.player2, this.boss, ...this.allArrows, ...this.enemies];
+	    const allBodies = [this.player1, this.boss, ...this.allArrows, ...this.enemies];
 
 	    if (this.level === 'level1' || this.level === 'level2') {
 	      allBodies.forEach(body => {
@@ -391,7 +362,7 @@
 	        if (counter >= this.numberEyeSpawn) {
 	          clearInterval(spawn);
 	        }
-	        this.enemies.push(new Eye(this.randomX, this.randomY, this.ctx, this.player1, this.player2));
+	        this.enemies.push(new Eye(this.randomX, this.randomY, this.ctx, this.player1, this.player1));
 	        counter++;
 	      }, spawnInterval);
 	    }, delaySpawn);
@@ -415,21 +386,14 @@
 	  }
 
 	  playerHit() {
-	    this.allArrows = [...this.player1.arrows, ...this.player2.arrows, ...this.boss.arrows];
+	    this.allArrows = [...this.player1.arrows, ...this.boss.arrows];
 	    const player1HitCondition = (this.player1.isColliding(this.allArrows) || this.player1.isColliding(this.enemies)) && !this.player1.invincible;
-	    const player2HitCondition = (this.player2.isColliding(this.allArrows) || this.player2.isColliding(this.enemies)) && !this.player2.invincible;
 
 	    if (player1HitCondition) {
 	      this.filterCollidingArrows([this.player1]);
 	      this.player1.hit();
 	      this.player1.upgradeSpeed = 0;
 	      this.player1.quiver = 3;
-	    }
-	    if (player2HitCondition) {
-	      this.filterCollidingArrows([this.player2]);
-	      this.player2.hit();
-	      this.player2.upgradeSpeed = 0;
-	      this.player2.quiver = 3;
 	    }
 	  }
 
@@ -486,16 +450,12 @@
 	    this.player1.arrows = this.player1.arrows.filter(arrow => {
 	      return !arrow.isColliding(target);
 	    });
-	    this.player2.arrows = this.player2.arrows.filter(arrow => {
-	      return !arrow.isColliding(target);
-	    });
 	  }
 
 	  callPowerup() {
 	    setTimeout(() => {
 	      this.powerup = new Powerup(this.ctx);
 	      this.player1.powerup = this.powerup;
-	      this.player2.powerup = this.powerup;
 	    }, this.powerupInterval);
 	  }
 
@@ -507,12 +467,10 @@
 	    if (this.powerup !== undefined) {
 	      this.powerup.draw();
 	    }
-	    if (this.player1.collectPowerup || this.player2.collectPowerup) {
+	    if (this.player1.collectPowerup) {
 	      this.powerup = undefined;
 	      this.player1.powerup = undefined;
-	      this.player2.powerup = undefined;
 	      this.player1.collectPowerup = false;
-	      this.player2.collectPowerup = false;
 	      this.powerupInterval = Math.random() * 10000 + 5000;
 	      this.canPowerup = true;
 	    }
@@ -521,12 +479,12 @@
 	  level3() {
 	    if (this.secret) {
 	      this.secret.draw();
-	      if (this.secret.isColliding([this.player1, this.player2])) {
+	      if (this.secret.isColliding([this.player1])) {
 	        this.secret = undefined;
 	        this.secretCollected++;
 	        this.jokerRespawnTime -= 150;
 	        if (this.ceberus === undefined) {
-	          this.cerberus = new Cerberus(this.ctx, 530, 600, this.player1, this.player2, this.background.platforms);
+	          this.cerberus = new Cerberus(this.ctx, 530, 600, this.player1, this.player1, this.background.platforms);
 	          setTimeout(() => {
 	            this.enemies.push(this.cerberus);
 	          }, 1000);
@@ -539,7 +497,7 @@
 	      if (this.canSpawnJoker) {
 	        this.canSpawnJoker = false;
 	        setTimeout(() => {
-	          this.joker = new Joker(500, 350, this.ctx, this.player1, this.player2);
+	          this.joker = new Joker(500, 350, this.ctx, this.player1, this.player1);
 	          this.enemies.push(this.joker);
 	          this.joker.speed += this.secretCollected * 0.13;
 	          this.canSpawnJoker = true;
@@ -575,6 +533,8 @@
 	    this.ctx.font = "70pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
 	    this.ctx.fillText('Victory', 500, 250);
+	    this.ctx.font = '20pt arcadeclassicregular';
+	    this.ctx.fillText('Press [N] for next level', 500, 550);
 	  }
 
 	  instructions() {
@@ -597,9 +557,9 @@
 
 	  displayControls() {
 	    const controls1 = new Image(50, 40);
-	    const controls2 = new Image(50, 40);
+	    //const controls2 = new Image(50, 40);
 	    controls1.src = '../assets/p1-controls.png';
-	    controls2.src = '../assets/p2-controls.png';
+	    //controls2.src = '../assets/p2-controls.png'
 
 	    this.ctx.globalAlpha = 0.025;
 	    this.ctx.fillStyle = 'rgba(100, 100, 100, .2)';
@@ -608,11 +568,12 @@
 	    this.ctx.font = "30pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
 	    this.ctx.fillText('controls', 500, 50);
-	    this.ctx.fillText('Player 1', 250, 100);
-	    this.ctx.drawImage(controls1, 59, 180, 350, 260);
-	    this.ctx.fillText('Player 2', 750, 100);
-	    this.ctx.drawImage(controls2, 550, 250, 370, 180);
-	    this.ctx.fillText('Press [spacebar] to play', 500, 600);
+	    this.ctx.fillText('Player 1', 500, 100);
+	    this.ctx.fillText('arrows to move', 500, 260);
+	    this.ctx.fillText('[spacebar] to shoot', 500, 360);
+	    this.ctx.fillText('[p] to pause', 500, 460);
+	    this.ctx.fillText('press [p] to play', 500, 560);
+	    //this.ctx.drawImage(controls1, 59, 180, 350, 260)
 	  }
 	}
 
@@ -624,6 +585,7 @@
 
 	const Bodies = __webpack_require__(3);
 	const Arrow = __webpack_require__(4);
+	const sounds = __webpack_require__(5);
 
 	class Player extends Bodies {
 	  constructor(ctx, x, y, platforms, keyboarder, player) {
@@ -664,7 +626,10 @@
 	    if (this.quiver > 0) {
 	      this.quiver--;
 	      this.shooting = true;
+
 	      const arrow = new Arrow(this);
+
+	      sounds.archerBow();
 
 	      this.arrows.push(arrow);
 	      setTimeout(() => {
@@ -1079,6 +1044,22 @@
 
 /***/ }),
 /* 5 */
+/***/ (function(module, exports) {
+
+	const sounds = {
+	  archerBow: () => {
+	    console.log('make noise please');
+	    let bowSound = new Audio('../assets/audio-assets/bow.mp3');
+	    bowSound.play();
+	    console.log(bowSound);
+	  }
+
+	};
+
+	module.exports = sounds;
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Player = __webpack_require__(2);
@@ -1177,7 +1158,7 @@
 	module.exports = Enemy;
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports) {
 
 	class Powerup {
@@ -1208,7 +1189,7 @@
 	module.exports = Powerup;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Bodies = __webpack_require__(3);
@@ -1235,13 +1216,13 @@
 	module.exports = Secret;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	const Platform = __webpack_require__(9);
-	const level1 = __webpack_require__(10);
-	const level2 = __webpack_require__(11);
-	const level3 = __webpack_require__(12);
+	const Platform = __webpack_require__(10);
+	const level1 = __webpack_require__(11);
+	const level2 = __webpack_require__(12);
+	const level3 = __webpack_require__(13);
 
 	class Background {
 	  constructor(ctx2, ctx3, level = 'level1') {
@@ -1290,7 +1271,7 @@
 	module.exports = Background;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports) {
 
 	class Platform {
@@ -1318,7 +1299,7 @@
 	module.exports = Platform;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports) {
 
 	const level = [
@@ -1504,7 +1485,7 @@
 	module.exports = level;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 	const level2 = [
@@ -1723,7 +1704,7 @@
 	module.exports = level2;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
 	const level3 = [{
@@ -1913,11 +1894,11 @@
 	module.exports = level3;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Player = __webpack_require__(2);
-	const Fireball = __webpack_require__(14);
+	const Fireball = __webpack_require__(15);
 
 	class Boss extends Player {
 	  constructor(ctx, platforms, player1, player2) {
@@ -1942,7 +1923,7 @@
 	    this.player1 = player1;
 	    this.player2 = player2;
 	    this.spriteSrc = '../assets/boss-sprites.png';
-	    this.target = [this.player1, this.player2][Math.floor(Math.random() * 2)];
+	    this.target = this.player1;
 	  }
 
 	  update() {
@@ -2098,7 +2079,7 @@
 	module.exports = Boss;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Arrow = __webpack_require__(4);
@@ -2161,11 +2142,11 @@
 	module.exports = Fireball;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Player = __webpack_require__(2);
-	const Kunai = __webpack_require__(16);
+	const Kunai = __webpack_require__(17);
 
 	class Ninja extends Player {
 	  constructor() {
@@ -2249,7 +2230,7 @@
 	module.exports = Ninja;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Arrow = __webpack_require__(4);
@@ -2278,11 +2259,11 @@
 	module.exports = Kunai;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Player = __webpack_require__(2);
-	const Orb = __webpack_require__(18);
+	const Orb = __webpack_require__(19);
 
 	class Mage extends Player {
 	  constructor() {
@@ -2369,7 +2350,7 @@
 	module.exports = Mage;
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Arrow = __webpack_require__(4);
@@ -2409,7 +2390,7 @@
 	module.exports = Orb;
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Bodies = __webpack_require__(3);
@@ -2516,10 +2497,10 @@
 	module.exports = Eye;
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	const Eye = __webpack_require__(19);
+	const Eye = __webpack_require__(20);
 
 	class Joker extends Eye {
 	  constructor(x, y, ctx, player1, player2) {
@@ -2546,8 +2527,6 @@
 	  }
 
 	  jokerTarget() {
-	    // if (!this.target) return this.centerLocation
-
 	    const player1Distance = Math.hypot(this.player1.x - 520, this.player1.y - 350);
 	    const player2Distance = Math.hypot(this.player2.x - 520, this.player2.y - 350);
 
@@ -2623,7 +2602,7 @@
 	module.exports = Joker;
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Bodies = __webpack_require__(3);
@@ -2733,7 +2712,7 @@
 	      setTimeout(() => {
 	        this.canLunge = true;
 	        this.target = this.chooseTarget();
-	      }, 3000);
+	      }, 2000);
 	    }
 	  }
 
@@ -2808,18 +2787,18 @@
 	module.exports = Cerberus;
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports) {
 
 	class Keyboarder {
 	  constructor() {
-	    this.keyState = { 32: true }; //32 = spacebar
+	    this.keyState = { 80: true }; //32 = spacebar
 	    this.playerKeys = {
 	      player1: {
-	        left: 65,
-	        right: 68,
-	        jump: 87,
-	        shoot: 16
+	        left: 37,
+	        right: 39,
+	        jump: 38,
+	        shoot: 32
 	      },
 	      player2: {
 	        left: 219,
@@ -2829,15 +2808,15 @@
 	      }
 	    };
 	    window.onkeydown = e => {
-	      if (e.keyCode === 32) {
+	      if (e.keyCode === 80) {
 	        e.preventDefault();
-	        this.keyState[32] = !this.keyState[32];
+	        this.keyState[80] = !this.keyState[80];
 	      } else {
 	        this.keyState[e.keyCode] = true;
 	      }
 	    };
 	    window.onkeyup = e => {
-	      if (e.keyCode === 32) {
+	      if (e.keyCode === 80) {
 	        e.preventDefault();
 	        return;
 	      } else {
