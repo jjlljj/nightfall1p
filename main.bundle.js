@@ -229,7 +229,6 @@
 	    this.updateEnemies();
 	    this.createEnemy();
 	    this.instructions();
-	    this.level3();
 	  }
 
 	  newGame() {
@@ -266,8 +265,6 @@
 	      if (!this.paused) this.spawnEyes();
 	    }, eyeSpawnInterval);
 	  }
-
-	  //coop() {
 
 	  singlePlayer() {
 	    this.selectBackground(this.level);
@@ -542,13 +539,13 @@
 	    this.ctx.font = "16pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
 
-	    if (this.mode === 'coop' && this.level === 'level1') {
-	      this.ctx.fillText(`Defeat ${50 - this.monsterKillCount} monsters`, 500, 20);
-	    } else if (this.mode === 'coop' && this.level === 'level2') {
-	      this.ctx.fillText('Defeat the Boss', 500, 20);
-	    } else if (this.mode === 'coop' && this.level === 'level3') {
-	      this.ctx.fillText(`Collect ${10 - this.secretCollected}   Secrets`, 500, 20);
-	    }
+	    const instructions = {
+	      level1: `Defeat ${50 - this.monsterKillCount} monsters`,
+	      level2: "Defeat the Boss",
+	      level3: `Collect ${10 - this.secretCollected} Secrets`
+	    };
+
+	    this.ctx.fillText(instructions[this.level], 500, 20);
 
 	    if (this.mode === 'versus') {
 	      this.ctx.fillText('Defeat the  other  Player', 500, 20);
@@ -557,9 +554,7 @@
 
 	  displayControls() {
 	    const controls1 = new Image(50, 40);
-	    //const controls2 = new Image(50, 40);
 	    controls1.src = '../assets/p1-controls.png';
-	    //controls2.src = '../assets/p2-controls.png'
 
 	    this.ctx.globalAlpha = 0.025;
 	    this.ctx.fillStyle = 'rgba(100, 100, 100, .2)';
@@ -567,13 +562,10 @@
 	    this.ctx.fillStyle = 'rgba(236, 236, 236, 0.7)';
 	    this.ctx.font = "30pt arcadeclassicregular";
 	    this.ctx.textAlign = 'center';
-	    this.ctx.fillText('controls', 500, 50);
-	    this.ctx.fillText('Player 1', 500, 100);
-	    this.ctx.fillText('arrows to move', 500, 260);
-	    this.ctx.fillText('[spacebar] to shoot', 500, 360);
-	    this.ctx.fillText('[p] to pause', 500, 460);
-	    this.ctx.fillText('press [p] to play', 500, 560);
-	    //this.ctx.drawImage(controls1, 59, 180, 350, 260)
+	    this.ctx.fillText('controls', 500, 100);
+	    this.ctx.fillText('[arrows]  to move', 500, 260);
+	    this.ctx.fillText('[spacebar]  to shoot', 500, 360);
+	    this.ctx.fillText('[p] to  play/pause', 500, 460);
 	  }
 	}
 
