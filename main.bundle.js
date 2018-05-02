@@ -68,6 +68,8 @@
 	const menu = document.querySelector('#menu');
 	const coop = document.querySelector('.coop');
 
+	coop.focus();
+
 	coop.addEventListener('click', () => {
 	  menu.style.zIndex = -1;
 	  mode = 'coop';
@@ -139,7 +141,6 @@
 	const Eye = __webpack_require__(20);
 	const Joker = __webpack_require__(21);
 	const Cerberus = __webpack_require__(22);
-	//const Clock = require('./Clock.js');
 
 	class Game {
 	  constructor(mode, canvas, canvas2, canvas3, ctx, ctx2, ctx3, keyboarder, player1Character, player2Character, level) {
@@ -152,7 +153,7 @@
 	    this.ctx3 = ctx3;
 
 	    this.keyboarder = keyboarder;
-	    //this.clock = new Clock();
+
 	    this.background = new Background(this.ctx2, this.ctx3, 'level1');
 	    this.level = level || 'level1';
 
@@ -228,6 +229,7 @@
 	    this.drawPortal();
 	    this.updateEnemies();
 	    this.createEnemy();
+	    this.level3();
 	    this.instructions();
 	  }
 

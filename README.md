@@ -2,6 +2,8 @@
 
 Single player version of Nightfall
 
+For multiplayer version visit: [](http://github.com/jjlljj/nightfall)
+
 [Deployed on Surge](http://nightfall.surge.sh/)
 
 ![Level1](/assets/readme/level1-arrow.png?raw=true "Fighting monsters on level1")
