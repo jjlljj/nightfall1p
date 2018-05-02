@@ -2,7 +2,7 @@
 
 Single player version of Nightfall
 
-For multiplayer version visit: [](http://github.com/jjlljj/nightfall)
+For multiplayer version visit: http://github.com/jjlljj/nightfall
 
 [Deployed on Surge](http://nightfall.surge.sh/)
 
