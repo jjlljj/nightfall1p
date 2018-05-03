@@ -187,7 +187,7 @@
 	    const singlePlayerCondition = this.player1.lives > 0 && !this.keyboarder.isDown(80);
 
 	    const victoryLevel1 = this.monsterKillCount >= 50 && this.level === 'level1';
-	    const victoryLevel2 = this.boss.lives === 19 && this.level === 'level2';
+	    const victoryLevel2 = this.boss.lives === 0 && this.level === 'level2';
 	    const victoryLevel3 = this.secretCollected === 10 && this.level === 'level3';
 
 	    const levelWin = victoryLevel1 || victoryLevel2 || victoryLevel2;
