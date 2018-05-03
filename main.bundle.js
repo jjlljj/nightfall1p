@@ -160,7 +160,7 @@
 	    this.player1 = new player1Character(this.ctx, 175, 100, this.background.platforms, this.keyboarder, 'player1');
 	    this.player1Character = player1Character;
 	    this.boss = new Boss(this.ctx, this.background.platforms, this.player1, this.player1);
-	    this.joker = new Joker(500, 350, this.ctx, this.player1, this.player1);
+	    this.joker;
 	    this.canSpawnJoker = true;
 	    this.jokerRespawnTime = 2500;
 	    this.cerberus;
@@ -229,7 +229,7 @@
 	    this.drawPortal();
 	    this.updateEnemies();
 	    this.createEnemy();
-	    this.level3();
+	    if (this.level === 'level3') this.level3();
 	    this.instructions();
 	  }
 
@@ -256,7 +256,10 @@
 	    let idx = levelArray.indexOf(this.level);
 	    if (idx < 2) idx++;
 	    this.level = levelArray[idx];
+	    this.clearPrevious();
 	  }
+
+	  clearPrevious() {}
 
 	  versus() {
 	    //this.selectRandomLevel();
@@ -273,18 +276,21 @@
 	    this.generateMonsterChance = 0.005;
 	    const bossTiming = 20000;
 	    const eyeSpawnInterval = 9500;
+	    let eyesInterval;
 
 	    if (this.level === 'level1') {
-	      // need to clear these set intervals 
-	      setInterval(() => {
+
+	      eyesInterval = setInterval(() => {
 	        if (!this.paused && this.level === 'level1') {
 	          this.spawnEyes();
 	          if (this.numberEyeSpawn < 6) this.numberEyeSpawn++;
 	        }
 	      }, eyeSpawnInterval);
 	    } else if (this.level === 'level2') {
-	      // and this too...
-	      setInterval(() => {
+	      clearInterval(eyesInterval);
+	      this.numberEyeSpawn = 2;
+
+	      eyesInterval = setInterval(() => {
 	        if (!this.paused && this.level === 'level2') this.spawnEyes();
 	      }, eyeSpawnInterval);
 
@@ -293,9 +299,11 @@
 	        this.generateMonsterChance = 0;
 	      }, bossTiming);
 	    } else if (this.level === 'level3') {
+	      clearInterval(eyesInterval);
+
 	      this.secret = new Secret(this.ctx);
+	      this.joker = new Joker(500, 350, this.ctx, this.player1, this.player1);
 	      this.enemies.push(this.joker);
-	      //this.enemies.push(this.cerberus);
 	      this.generateMonsterChance = 0;
 
 	      setInterval(() => {
@@ -1929,7 +1937,7 @@
 	      return !arrow.isColliding(this.platforms);
 	    });
 	    this.arrows.forEach(arrow => arrow.draw().update());
-	    this.changeTarget();
+	    //this.changeTarget();
 	  }
 
 	  renderAttributes() {
@@ -2522,19 +2530,26 @@
 
 	  jokerTarget() {
 	    const player1Distance = Math.hypot(this.player1.x - 520, this.player1.y - 350);
-	    const player2Distance = Math.hypot(this.player2.x - 520, this.player2.y - 350);
+	    //const player2Distance = 
+	    //Math.hypot((this.player2.x - 520), (this.player2.y - 350))
 
-	    const closestPlayer = player1Distance <= player2Distance ? this.player1 : this.player2;
+	    //const closestPlayer = player1Distance <= player2Distance ? this.player1 : this.player2
 
-	    if (player1Distance < this.boundary && !this.player1.dead || player2Distance < this.boundary && !this.player2.dead) {
-	      this.target = closestPlayer;
-	    } else if (this.player1.dead && player2Distance < this.boundary) {
-	      this.target = this.player2;
-	    } else if (this.player2.dead && player1Distance < this.boundary) {
+	    if (player1Distance < this.boundary) {
 	      this.target = this.player1;
 	    } else {
 	      this.patrol();
 	    }
+
+	    //if ((player1Distance < this.boundary && !this.player1.dead) || (player2Distance < this.boundary && !this.player2.dead)) {
+	    //this.target = closestPlayer
+	    //} else if ( this.player1.dead && player2Distance < this.boundary) {
+	    //this.target = this.player2
+	    //} else if ( this.player2.dead && player1Distance < this.boundary) {
+	    //this.target = this.player1
+	    //} else { 
+	    //this.patrol()
+	    //}
 	  }
 
 	  patrol() {
